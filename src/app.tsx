@@ -57,6 +57,7 @@ import { IsPIP, OpenPopupLyrics, ClosePopupLyrics } from "./components/Utils/Pop
 import { GetNPVCardElement, initNPVLyrics } from "./components/Utils/NPVLyrics.ts";
 import ReactDOM from "react-dom/client";
 import { runThemeMatcher } from "./utils/themeMatcher.ts";
+import { guardSpicetifyScrollingFix } from "./utils/scrollFixGuard.ts";
 import "./utils/settings.ts";
 import SLToaster from "./components/ReactComponents/SLToaster.tsx";
 import { openSettingsPanel } from "./utils/settings.ts";
@@ -78,6 +79,8 @@ async function main() {
   }
 
   await Platform.OnSpotifyReady;
+
+  guardSpicetifyScrollingFix();
 
   if (needsMigration()) {
     showMigrationModal();
@@ -570,6 +573,14 @@ async function main() {
       });
     };
 
+    // Mirror the live aside instead of a document-wide body:has() CSS gate.
+    const syncNPVDynamicBackgroundClass = () => {
+      document.body.classList.toggle(
+        "SpicyLyrics_NPVDynamicBackground",
+        Boolean(document.querySelector("aside.spicy-dynamic-bg-in-this"))
+      );
+    };
+
     const CleanupNowBarDynamicBgLets = () => {
       const nowPlayingBar = getNowPlayingBarElement() ?? lastNowPlayingBarElement;
 
@@ -580,6 +591,7 @@ async function main() {
       }
       nowPlayingBar?.querySelector<HTMLElement>(".spicy-dynamic-bg")?.remove();
       nowPlayingBar?.classList.remove("spicy-dynamic-bg-in-this");
+      syncNPVDynamicBackgroundClass();
       lastNowPlayingBarElement = null;
       lastImgUrl = null;
     };
@@ -648,6 +660,7 @@ async function main() {
     );
 
     async function applyDynamicBackgroundToNowPlayingBar(coverUrl: string | undefined) {
+      syncNPVDynamicBackgroundClass();
       if (!$showNpvDynamicBg.get()) return;
       if (SpotifyPlayer.GetContentType() === "unknown" || SpotifyPlayer.IsDJ()) return;
       if (!coverUrl) return;
@@ -669,6 +682,7 @@ async function main() {
         if (coverUrl === lastImgUrl) return;
 
         nowPlayingBar.classList.add("spicy-dynamic-bg-in-this");
+        syncNPVDynamicBackgroundClass();
 
         await ApplyDynamicBackground(nowPlayingBar, "npvbg");
 

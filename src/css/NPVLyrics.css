@@ -126,14 +126,22 @@
 
 /* ─── Expanded mode: card takes over the whole NPV panel ──────────────── */
 
-/* All takeover rules key off :has(.Expanded), so removing the card (teardown,
-   page handover, external removal) reverts the NPV automatically — no classes
-   on Spotify-owned elements to unwind. The .Root__right-sidebar scope covers
+/* NPVLyrics.ts clears the expanded body class as soon as the card is removed.
+   Other takeover rules remain tied to the connected card. The sidebar covers
    both aside.NowPlayingView and the #Desktop_PanelContainer_Id fallback. */
 /* Hide everything except the card and whatever wraps it — insertCard() may
    fall back to prepending inside .main-nowPlayingView-content, so the card
    is not always a direct child of the panel. */
-.Root__right-sidebar:has(#SpicyLyricsNPVCard.Expanded)
+/* Avoid an ancestor :has() with a featureless descendant subject. */
+.Root__right-sidebar
+  :is(.main-nowPlayingView-panel, .main-nowPlayingView-content)
+  > :has(~ #SpicyLyricsNPVCard.Expanded),
+.Root__right-sidebar
+  :is(.main-nowPlayingView-panel, .main-nowPlayingView-content)
+  > #SpicyLyricsNPVCard.Expanded
+  ~ *,
+body.SpicyLyrics_NPVCardExpanded
+  .Root__right-sidebar
   :is(.main-nowPlayingView-panel, .main-nowPlayingView-content)
   > :not(#SpicyLyricsNPVCard, :has(#SpicyLyricsNPVCard)) {
   display: none;
@@ -275,6 +283,71 @@
   --DefaultLyricsSize: calc(
     clamp(2.2rem, calc(1cqw * 7.5), 3.6rem) * var(--sl-lyrics-font-scale, 1)
   );
+}
+
+/* Snapshot names only exist during the card morph. Keep the rest of Spotify
+   live, and clip nested snapshots to the sidebar (Chromium 140+). */
+html.SpicyLyrics_NPVMorph {
+  view-transition-name: none;
+}
+
+html.SpicyLyrics_NPVMorph::view-transition {
+  pointer-events: none;
+}
+
+html.SpicyLyrics_NPVMorph .Root__right-sidebar aside:has(#SpicyLyricsNPVCard) {
+  view-transition-name: spicy-npv-panel;
+}
+
+html.SpicyLyrics_NPVMorph #SpicyLyricsNPVCard {
+  view-transition-name: spicy-npv-card;
+  view-transition-group: nearest;
+}
+
+html.SpicyLyrics_NPVMorph #NPVCardExpand {
+  view-transition-name: spicy-npv-ctl-expand;
+  view-transition-group: nearest;
+}
+
+html.SpicyLyrics_NPVMorph #NPVCardMaximize {
+  view-transition-name: spicy-npv-ctl-maximize;
+  view-transition-group: nearest;
+}
+
+html.SpicyLyrics_NPVMorph #NPVCardToggle {
+  view-transition-name: spicy-npv-ctl-toggle;
+  view-transition-group: nearest;
+}
+
+html.SpicyLyrics_NPVMorph::view-transition-group(*),
+html.SpicyLyrics_NPVMorph::view-transition-image-pair(*),
+html.SpicyLyrics_NPVMorph::view-transition-old(*),
+html.SpicyLyrics_NPVMorph::view-transition-new(*) {
+  animation-duration: 250ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.SpicyLyrics_NPVMorph::view-transition-group-children(spicy-npv-panel),
+html.SpicyLyrics_NPVMorph::view-transition-image-pair(spicy-npv-card) {
+  overflow: clip;
+}
+
+html.SpicyLyrics_NPVMorph::view-transition-old(spicy-npv-card) {
+  animation-duration: 100ms;
+}
+
+html.SpicyLyrics_NPVMorph::view-transition-new(spicy-npv-card) {
+  animation-duration: 160ms;
+}
+
+/* Safety if the preference changes during a running capture. */
+@media (prefers-reduced-motion: reduce) {
+  html.SpicyLyrics_NPVMorph::view-transition-group(*),
+  html.SpicyLyrics_NPVMorph::view-transition-image-pair(*),
+  html.SpicyLyrics_NPVMorph::view-transition-old(*),
+  html.SpicyLyrics_NPVMorph::view-transition-new(*) {
+    animation: none !important;
+  }
 }
 
 /* ─── CardMode page overrides ─────────────────────────────────────────── */

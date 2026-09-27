@@ -71,7 +71,9 @@
   mask-image: none;
 }
 
-#SpicyLyricsPage .LyricsContainer .LyricsContent:not(:has(.LyricsNotice)) * {
+/* Avoid an ancestor :has() paired with a universal subject: lyric mutations
+   would otherwise invalidate styles throughout the document. */
+#SpicyLyricsPage .LyricsContainer .LyricsContent *:not(.LyricsNotice, .LyricsNotice *) {
   font-weight: 700 !important;
 }
 

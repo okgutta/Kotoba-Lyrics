@@ -90,15 +90,21 @@ div.main-nowPlayingView-contextItemInfo:has(.main-trackInfo-container)::before,
 div.UUydeXMsXVZofB0YAOgm:has(.main-trackInfo-container)::after,
 div.main-nowPlayingView-contextItemInfo:has(.main-trackInfo-container)::after,
 :is(.main-nowPlayingView-nowPlayingWidget, .NowPlayingView, aside)
-  div:has(> .main-nowPlayingView-coverArtVisualEnhancement)
-  :not(.main-nowPlayingView-coverArtVisualEnhancement):has(video)::before,
+  :is(
+    .main-nowPlayingView-coverArtVisualEnhancement ~ *,
+    .main-nowPlayingView-coverArtVisualEnhancement *,
+    .main-nowPlayingView-coverArtVisualEnhancement ~ * *
+  ):not(.main-nowPlayingView-coverArtVisualEnhancement):has(video)::before,
 :is(.main-nowPlayingView-nowPlayingWidget, .NowPlayingView, aside)
-  div:has(> .main-nowPlayingView-coverArtVisualEnhancement)
-  :not(.main-nowPlayingView-coverArtVisualEnhancement):has(video)::after {
+  :is(
+    .main-nowPlayingView-coverArtVisualEnhancement ~ *,
+    .main-nowPlayingView-coverArtVisualEnhancement *,
+    .main-nowPlayingView-coverArtVisualEnhancement ~ * *
+  ):not(.main-nowPlayingView-coverArtVisualEnhancement):has(video)::after {
   display: none !important;
 }
 
-aside:has(.spicy-dynamic-bg) > div,
+aside.spicy-dynamic-bg-in-this > div,
 aside:has(.spicy-dynamic-bg) .AAdBM1nhG73supMfnYX7,
 aside:has(.spicy-dynamic-bg) .iHa_q9pq4un3VNRQgwTx {
   z-index: 1;
