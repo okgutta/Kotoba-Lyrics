@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 import type { LyricsCacheEntry, LyricsPrefetchResult } from "./fetchLyrics.ts";
 import type { LyrivaResult } from "./lyriva.ts";
 import type { LyricsPayload, TargetTrack } from "./matcher.ts";
+import { NEGATIVE_LYRICS_TTL_MS } from "./negativeLyricsCache.ts";
 
 const { build } = createRequire(import.meta.url)("esbuild") as typeof Esbuild;
 type FetchResult = [object | string, number] | null;
@@ -56,6 +57,7 @@ function entry(lyrics: LyricsPayload): LyricsCacheEntry {
 const missEntry: LyricsCacheEntry = {
   uri,
   notFound: true,
+  notFoundCachedAt: Date.now(),
   matchInfo: { level: "REJECT", targetTitle: target.title, targetArtists: target.artists },
 };
 function textOf(result: FetchResult): string | undefined {
@@ -192,7 +194,10 @@ try {
   for (const kind of ["memory-positive", "memory-negative", "local-positive", "local-negative"]) {
     const { app, fixture, stores, items, calls } = await createPipeline();
     if (kind === "memory-positive") stores.$currentLyricsData.set(JSON.stringify(model("memory")));
-    if (kind === "memory-negative") stores.$currentLyricsData.set(`NO_LYRICS:${uri}`);
+    if (kind === "memory-negative") {
+      stores.$currentLyricsData.set(`NO_LYRICS:${uri}`);
+      items.set("fixture", missEntry);
+    }
     if (kind === "local-positive") items.set("fixture", entry(model("local")));
     if (kind === "local-negative") items.set("fixture", missEntry);
     const cached = await app.default(uri);
@@ -204,6 +209,39 @@ try {
     assert.equal(textOf(fresh), "fresh", `${kind}: force must bypass its cache`);
     assert.equal(calls.length, 1);
     assert.equal(stores.$currentlyFetching.get(), false);
+    app.cancelLyricsFetch();
+  }
+
+  // Both normal playback and prefetch must recover without a manual cache
+  // clear. Legacy three-day misses have no timestamp and expire on upgrade.
+  for (const kind of ["expired", "legacy", "memory-only"]) {
+    for (const operation of ["play", "prefetch"]) {
+      const { app, fixture, stores, items, calls } = await createPipeline();
+      stores.$currentLyricsData.set(`NO_LYRICS:${uri}`);
+      if (kind !== "memory-only") {
+        items.set("fixture", {
+          ...missEntry,
+          notFoundCachedAt: kind === "legacy" ? undefined : Date.now() - NEGATIVE_LYRICS_TTL_MS - 1,
+        });
+      }
+      fixture.sourceResult = async () => ({ kind: "ok", model: model("newly-available") });
+      if (operation === "play") assert.equal(textOf(await app.default(uri)), "newly-available");
+      else assert.equal(await app.prefetchLyrics(target), "fetched");
+      assert.equal(
+        calls.length,
+        1,
+        `${kind}/${operation}: stale miss must permit automatic lookup`
+      );
+      app.cancelLyricsFetch();
+    }
+  }
+
+  {
+    const { app, fixture, items } = await createPipeline();
+    fixture.sourceResult = async () => ({ kind: "not-found" });
+    const before = Date.now();
+    assert.equal((await app.default(uri))?.[0], "lyrics-not-found");
+    assert.ok(items.get("fixture")!.notFoundCachedAt! >= before);
     app.cancelLyricsFetch();
   }
 

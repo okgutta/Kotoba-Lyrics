@@ -167,7 +167,7 @@ export async function tryLyrivaLyrics(
 
   const params = new URLSearchParams();
   params.set("title", target.title || "");
-  if (target.artists.length) params.set("artist", target.artists.join(" "));
+  if (target.artists.length) params.set("artist", target.artists.join(", "));
   if (target.album) params.set("album", target.album);
   if (target.durationMs && target.durationMs > 0) {
     params.set("duration", String(Math.round(target.durationMs / 1000)));

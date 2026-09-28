@@ -110,6 +110,10 @@ const target: TargetTrack = {
   check("HIGH_CONFIDENCE → HIGH", metaToLevel({ matchLevel: "HIGH_CONFIDENCE" }) === "HIGH");
   check("GOOD_CONFIDENCE → GOOD", metaToLevel({ matchLevel: "GOOD_CONFIDENCE" }) === "GOOD");
   check(
+    "ACCEPT → GOOD, without upgrading from content quality",
+    metaToLevel({ matchLevel: "ACCEPT", qualityScore: 100 }) === "GOOD"
+  );
+  check(
     "缓存缺失 matchLevel → qualityScore>=90 判 HIGH",
     metaToLevel({ qualityScore: 100 }) === "HIGH"
   );
@@ -148,6 +152,34 @@ const target: TargetTrack = {
 }
 
 // ── mapTranslations：纯文本按行序兜底 ────────────────────────────────────────
+{
+  const timeline = "[00:09.18]\n[00:11.94]\n[00:14.46]";
+  check(
+    "空 LRC 翻译不退回为方括号时间文本",
+    mapTranslations(timeline, [9180, 11940, 14460]).every((line) => line === "")
+  );
+  check(
+    "Static 空 LRC 翻译也不显示时间标签",
+    mapStaticTranslations(timeline, 3).every((line) => line === "")
+  );
+  const mixed = mapTranslations("[00:09.18]\n[00:11.94]真实译文\n[00:14.46]", [9180, 11940, 14460]);
+  check(
+    "混合空行仍按时间定位真正译文",
+    mixed[0] === "" && mixed[1] === "真实译文" && mixed[2] === ""
+  );
+  const original = {
+    track: { title: "Fixture", artist: "Artist" },
+    syncedLyrics: [9180, 11940, 14460].map((startMs) => ({ startMs, text: "原文" })),
+    translation: timeline,
+    romanization: timeline,
+  };
+  const mapped = buildLyrivaModel(original, target, { matchLevel: "ACCEPT", qualityScore: 100 });
+  check(
+    "完整模型不携带空翻译或空罗马音副文本",
+    mapped?.Content?.every((line) => !line.Translation && !line.TransliteratedText) === true
+  );
+}
+
 {
   const got = mapTranslations("一\n二\n三", [5000, 10000, 15000]);
   check("纯文本行序兜底", got[0] === "一" && got[2] === "三", got);

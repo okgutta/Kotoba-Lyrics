@@ -12,7 +12,7 @@ const TRANSLATION_TIME_TOLERANCE_MS = 1500;
 export function metaToLevel(meta: any): MatchLevel {
   const s = String(meta?.matchLevel ?? "").toUpperCase();
   if (s.includes("HIGH")) return "HIGH";
-  if (s.includes("GOOD") || s.includes("MEDIUM")) return "GOOD";
+  if (s === "ACCEPT" || s.includes("GOOD") || s.includes("MEDIUM")) return "GOOD";
   if (s.includes("UNCERTAIN") || s.includes("LOW")) return "UNCERTAIN";
   if (s.includes("REJECT") || s.includes("MISMATCH")) return "REJECT";
   const q = Number(meta?.qualityScore);
@@ -109,9 +109,12 @@ export function mapTranslations(raw: unknown, rowStartMs: number[]): string[] {
   if (typeof value === "string") {
     const s = value.trim();
     if (!s) return empty;
-    const rows = parseLrc(s).filter((row) => Boolean(row.text));
+    const rows = parseLrc(s);
     if (rows.length > 0) {
-      return alignTimedTranslations(rows, rowStartMs);
+      return alignTimedTranslations(
+        rows.filter((row) => Boolean(row.text)),
+        rowStartMs
+      );
     }
     const lines = s
       .split(/\r?\n/)
@@ -134,7 +137,7 @@ export function mapStaticTranslations(raw: unknown, lineCount: number): string[]
   const value = unwrapTranslation(raw);
   let lines: string[] = [];
   if (typeof value === "string") {
-    const timedRows = parseLrc(value).filter((row) => Boolean(row.text));
+    const timedRows = parseLrc(value);
     lines = timedRows.length
       ? timedRows.map((row) => row.text)
       : value

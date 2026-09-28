@@ -9,7 +9,7 @@ const originalFetch = globalThis.fetch;
 const target: TargetTrack = {
   uri: "spotify:track:test",
   title: "Test Song",
-  artists: ["Test Artist"],
+  artists: ["Test Artist", "Guest Artist"],
 };
 const calls: { url: string; init: RequestInit }[] = [];
 let failDirect = false;
@@ -28,6 +28,7 @@ function checkRequest(index: number, proxy: boolean) {
   const url = proxy ? request.url.replace("https://cors-proxy.spicetify.app/", "") : request.url;
   assert.equal(new URL(url).origin, "https://api.lyriva.xyz");
   assert.equal(new URL(url).searchParams.get("title"), target.title);
+  assert.equal(new URL(url).searchParams.get("artist"), "Test Artist, Guest Artist");
   assert.equal(request.url.startsWith("https://cors-proxy.spicetify.app/"), proxy);
   const headers = new Headers(request.init.headers);
   assert.equal(headers.get("X-Client-Name"), "lyrivaMusic");

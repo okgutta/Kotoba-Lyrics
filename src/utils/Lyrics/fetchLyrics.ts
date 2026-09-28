@@ -19,6 +19,7 @@ import { tryLyrivaLyrics, type LyrivaResult } from "./lyriva.ts";
 import { geniusProvider } from "./providers/genius.ts";
 import Global from "../../components/Global/Global.ts";
 import { PrefetchMissCache } from "./PrefetchMissCache.ts";
+import { hasFreshLyricsMiss } from "./negativeLyricsCache.ts";
 import { classifyLyricsFailure, type LyricsFailureKind } from "./lyricsFailure.ts";
 import {
   recordCacheDiagnostic,
@@ -111,13 +112,14 @@ export type LyricsCacheEntry = {
   uri: string;
   matchInfo?: Partial<MatchInfo>;
   notFound?: boolean;
+  notFoundCachedAt?: number;
 };
 
 // 缓存 Key 至少考虑 track identity + title/artist（见 matchInfo 校验）。
-// g4 → g5：旧模型丢弃了逐字时间，重新请求以保留后端逐字歌词。
+// g5 → g6：旧模型可能把空翻译时间轴缓存成副文本，升级后重新解析。
 export const LyricsStore = GetExpireStore<LyricsCacheEntry>(
-  "SpicyLyrics_LyricsStore_g5",
-  5,
+  "SpicyLyrics_LyricsStore_g6",
+  6,
   { Unit: "Days", Duration: 3 },
   isDev as true
 );
@@ -341,7 +343,8 @@ async function prefetchLyricsInner(
       return "cached";
     }
     if (
-      cached?.notFound === true &&
+      hasFreshLyricsMiss(cached) &&
+      cached &&
       cached.uri === target.uri &&
       verifyIdentityOnly(cached.matchInfo, target)
     ) {
@@ -602,22 +605,9 @@ async function fetchLyricsInner(
   const savedLyricsData = $currentLyricsData.get();
   if (!forceRefresh && savedLyricsData && !isDev) {
     try {
-      if (savedLyricsData.startsWith("NO_LYRICS:")) {
-        const savedUri = savedLyricsData.slice("NO_LYRICS:".length);
-        if (savedUri === uri) {
-          lyricsLogger.debug("NO_LYRICS 内存哨兵命中，跳过全部 Provider（清缓存后可重试）", uri);
-          $currentlyFetching.set(false);
-          recordCurrentDiagnostic({
-            level: "warning",
-            title: "当前歌曲无歌词",
-            detail: "命中本次播放的无歌词记录",
-            source: "内存缓存",
-            uri,
-            track: label,
-          });
-          return ["lyrics-not-found", 404];
-        }
-      } else {
+      // A notice marker has no timestamp. Only a fresh persistent miss below
+      // may suppress a request; reapplying a notice must not extend its TTL.
+      if (!savedLyricsData.startsWith("NO_LYRICS:")) {
         const parsed = JSON.parse(savedLyricsData);
         if (
           parsed?.uri === uri &&
@@ -658,7 +648,7 @@ async function fetchLyricsInner(
       if (res) {
         // 负缓存（NO_LYRICS）：必须是当前曲目身份，才跳过
         if (
-          res?.notFound === true &&
+          hasFreshLyricsMiss(res) &&
           res?.uri === uri &&
           verifyIdentityOnly(res?.matchInfo, target)
         ) {
@@ -667,7 +657,7 @@ async function fetchLyricsInner(
           recordCurrentDiagnostic({
             level: "warning",
             title: "当前歌曲无歌词",
-            detail: "命中本地无歌词缓存",
+            detail: "命中本地无歌词缓存（5 分钟后可自动重查）",
             source: "本地缓存",
             uri,
             track: label,
@@ -800,6 +790,7 @@ async function fetchLyricsInner(
       try {
         const notFoundEntry = {
           notFound: true,
+          notFoundCachedAt: Date.now(),
           uri,
           matchInfo: {
             level: "REJECT" as MatchLevel,
