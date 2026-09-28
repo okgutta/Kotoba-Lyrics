@@ -116,6 +116,35 @@ const scenarios = [
 ];
 const realFetch = globalThis.fetch;
 try {
+  {
+    const uri = "spotify:track:cached-entities";
+    (globalThis as any).__translationTestUri = uri;
+    app.resetTranslationForTrack(uri);
+    let networkCalls = 0;
+    globalThis.fetch = (async () => {
+      networkCalls++;
+      throw new Error("Unexpected translation request");
+    }) as typeof fetch;
+    const cached = {
+      Type: "Line",
+      LanguageISO2: "en",
+      Content: [
+        { Type: "Vocal", Text: "fixture one", StartTime: 1, Translation: "仿佛从未存在&nbsp;" },
+        { Type: "Vocal", Text: "fixture two", StartTime: 2, Translation: "&nbsp;" },
+      ],
+    };
+    const rendered = app.prepareLyricsForDisplay(uri, cached);
+    assert.equal(rendered.Content[0].Translation, "仿佛从未存在");
+    assert.equal(rendered.Content[1].Translation, undefined);
+    assert.equal(rendered.Content[0].StartTime, 1);
+    assert.equal(
+      cached.Content[0].Translation,
+      "仿佛从未存在&nbsp;",
+      "Rendering must not mutate persisted source models"
+    );
+    assert.equal(networkCalls, 0);
+  }
+
   for (const scenario of scenarios) {
     storage.clear();
     app.$translationProvider.set(scenario.provider);

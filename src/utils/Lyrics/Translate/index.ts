@@ -5,6 +5,7 @@
  *  - 目标语言变化只读取对应缓存，不自动消耗翻译额度。
  */
 import Logger from "../../Logger.ts";
+import { decodeLyricsEntities } from "../textEntities.ts";
 import { notify } from "../../notify.ts";
 import {
   $currentLyricsData,
@@ -80,7 +81,7 @@ function providerConfigIdentity(): string {
 }
 
 function translationText(item: any): string {
-  return typeof item?.Translation === "string" ? item.Translation.trim() : "";
+  return typeof item?.Translation === "string" ? decodeLyricsEntities(item.Translation).trim() : "";
 }
 
 /** Syllable Vocal 没有 Text 时，按 Lead 音节拼出与渲染器一致的文本。 */
@@ -131,14 +132,17 @@ function cloneTranslationLayer(model: Model): Model {
 
 function applyTranslationValues(model: Model, values: string[]): Model {
   const entries = extractEntries(model);
+  const normalized = values.map((value) => decodeLyricsEntities(value ?? "").trim());
   const changed = entries.some(
-    (entry, index) => translationText(entry.item) !== (values[index] ?? "")
+    (entry, index) =>
+      (typeof entry.item?.Translation === "string" ? entry.item.Translation.trim() : "") !==
+      (normalized[index] ?? "")
   );
   if (!changed) return model;
 
   const result = cloneTranslationLayer(model);
   extractEntries(result).forEach((entry, index) => {
-    const value = values[index]?.trim();
+    const value = normalized[index];
     if (value) entry.item.Translation = value;
     else delete entry.item.Translation;
   });
@@ -228,7 +232,7 @@ export function prepareLyricsForDisplay(uri: string, model: Model): Model {
   if (hasTrackTranslation) {
     entries.forEach((entry, index) => {
       if (values[index]) return;
-      const cached = trackCache?.lines[index]?.trim();
+      const cached = decodeLyricsEntities(trackCache?.lines[index] ?? "").trim();
       if (!cached || cached === entry.text) return;
       values[index] = cached;
       valueOwned[index] = true;

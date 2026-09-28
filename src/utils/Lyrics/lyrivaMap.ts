@@ -3,6 +3,7 @@
 import { parseLrc } from "../ncm/parseLrc.ts";
 import { splitArtists, type LyricsPayload, type MatchLevel, type TargetTrack } from "./matcher.ts";
 import { normalizeWordTiming } from "./wordTiming.ts";
+import { decodeLyricsEntities } from "./textEntities.ts";
 
 /** 至少要有 3 行同步歌词才采信为 Line 模型，否则回退 Static（或视为无词） */
 const MIN_LINES = 3;
@@ -32,11 +33,11 @@ export function confidenceOf(meta: any): number {
 }
 
 function translationText(raw: unknown): string {
-  if (typeof raw === "string") return raw.trim();
+  if (typeof raw === "string") return decodeLyricsEntities(raw).trim();
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return "";
   const value = raw as Record<string, unknown>;
   for (const key of ["text", "translation", "translatedText", "lyric", "content"]) {
-    if (typeof value[key] === "string") return value[key].trim();
+    if (typeof value[key] === "string") return decodeLyricsEntities(value[key]).trim();
   }
   return "";
 }
@@ -107,8 +108,8 @@ export function mapTranslations(raw: unknown, rowStartMs: number[]): string[] {
   const value = unwrapTranslation(raw);
   if (!value) return empty;
   if (typeof value === "string") {
-    const s = value.trim();
-    if (!s) return empty;
+    const s = decodeLyricsEntities(value);
+    if (!s.trim()) return empty;
     const rows = parseLrc(s);
     if (rows.length > 0) {
       return alignTimedTranslations(
@@ -116,10 +117,7 @@ export function mapTranslations(raw: unknown, rowStartMs: number[]): string[] {
         rowStartMs
       );
     }
-    const lines = s
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean);
+    const lines = s.split(/\r?\n/).map((line) => line.trim());
     return rowStartMs.map((_, i) => lines[i] ?? "");
   }
   if (Array.isArray(value)) {
@@ -137,13 +135,11 @@ export function mapStaticTranslations(raw: unknown, lineCount: number): string[]
   const value = unwrapTranslation(raw);
   let lines: string[] = [];
   if (typeof value === "string") {
-    const timedRows = parseLrc(value);
+    const decoded = decodeLyricsEntities(value);
+    const timedRows = parseLrc(decoded);
     lines = timedRows.length
-      ? timedRows.map((row) => row.text)
-      : value
-          .split(/\r?\n/)
-          .map((line) => line.trim())
-          .filter(Boolean);
+      ? timedRows.map((row) => row.text.trim())
+      : decoded.split(/\r?\n/).map((line) => line.trim());
   } else if (Array.isArray(value)) {
     const timedRows = timedArrayRows(value);
     lines = timedRows.length ? timedRows.map((row) => row.text) : value.map(translationText);

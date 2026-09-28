@@ -153,6 +153,32 @@ const target: TargetTrack = {
 
 // ── mapTranslations：纯文本按行序兜底 ────────────────────────────────────────
 {
+  const timed = mapTranslations(
+    "[00:01.00]仿佛从未存在&nbsp;\n[00:02.00]我曾以为我会改变&#160;",
+    [1000, 2000]
+  );
+  check(
+    "LRC 译文实体转换为普通空格并去除行尾空白",
+    timed[0] === "仿佛从未存在" && timed[1] === "我曾以为我会改变"
+  );
+  const structured = mapTranslations([{ startMs: 1000, text: "中文&#xA0;译文&nbsp;" }], [1000]);
+  check("结构化译文同样解码空格实体", structured[0] === "中文 译文");
+  check(
+    "纯文本 Static 翻译实体正常显示",
+    mapStaticTranslations("译文&nbsp;\n后续&#160;", 2).join("|") === "译文|后续"
+  );
+  check("实体空白仍属于空翻译", mapTranslations("[00:01.00]&nbsp;", [1000])[0] === "");
+  check(
+    "纯文本中的空白占位不挤占后续译文位置",
+    mapTranslations("甲\n&nbsp;\n乙", [1000, 2000, 3000]).join("|") === "甲||乙"
+  );
+  check(
+    "Static 空白占位同样保留行对应关系",
+    mapStaticTranslations("甲\n&#160;\n乙", 3).join("|") === "甲||乙"
+  );
+}
+
+{
   const timeline = "[00:09.18]\n[00:11.94]\n[00:14.46]";
   check(
     "空 LRC 翻译不退回为方括号时间文本",
