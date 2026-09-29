@@ -15,6 +15,8 @@ export interface UpdateManifest {
   schema: 1;
   version: string;
   loaderVersion: number;
+  minimumSupportedVersion?: string;
+  updateReason?: string;
   runtime: { url: string; sha256: string; size: number };
 }
 
@@ -67,6 +69,11 @@ export function parseManifest(value: unknown, release: Release): UpdateManifest 
     data.version !== release.version ||
     !Number.isSafeInteger(data.loaderVersion) ||
     Number(data.loaderVersion) < 1 ||
+    (data.minimumSupportedVersion !== undefined &&
+      (!stableVersion(data.minimumSupportedVersion) ||
+        compareVersions(data.minimumSupportedVersion, release.version) > 0)) ||
+    (data.updateReason !== undefined &&
+      (typeof data.updateReason !== "string" || data.updateReason.length > 1000)) ||
     !runtime ||
     runtime.url !== `${RAW_ROOT}/${release.tag}/lyrivamusic-runtime.js` ||
     typeof runtime.sha256 !== "string" ||
@@ -80,6 +87,10 @@ export function parseManifest(value: unknown, release: Release): UpdateManifest 
     schema: 1,
     version: data.version,
     loaderVersion: data.loaderVersion!,
+    ...(data.minimumSupportedVersion !== undefined
+      ? { minimumSupportedVersion: data.minimumSupportedVersion }
+      : {}),
+    ...(data.updateReason?.trim() ? { updateReason: data.updateReason.trim() } : {}),
     runtime: { ...runtime, sha256: runtime.sha256.toLowerCase() },
   };
 }

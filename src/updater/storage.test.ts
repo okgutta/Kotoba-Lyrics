@@ -87,6 +87,11 @@ const runtime: CachedRuntime = {
     pending: { ...runtime, size: NaN },
     trial: { version: "1.2.3", kind: "invalid" },
     badVersion: "1.2.2",
+    policy: {
+      latestVersion: "2.0.0",
+      minimumSupportedVersion: "1.5.0",
+      updateReason: "旧接口停用",
+    },
     unwanted: "discard",
   });
   const operation = createUpdateStorage(idb.factory).read();
@@ -99,6 +104,7 @@ const runtime: CachedRuntime = {
   check(state.current !== runtime, "cached values must be copied to a sanitized object");
   check(!state.pending && !state.trial, "invalid runtime and trial records must be dropped");
   check(state.badVersion === "1.2.2", "valid bad-version marker must survive reading");
+  check(state.policy?.minimumSupportedVersion === "1.5.0", "saved minimum must survive restart");
   check(!("unwanted" in state), "unrecognized state fields must be discarded");
   check(idb.modes[0] === "readonly" && idb.writes.length === 0, "read must not write");
   check(idb.stats().creates === 1 && idb.stats().closes === 1, "create store and close connection");

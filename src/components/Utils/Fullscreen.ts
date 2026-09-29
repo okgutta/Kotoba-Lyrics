@@ -1,4 +1,5 @@
 import { GetCurrentLyricsContainerInstance } from "../../utils/Lyrics/Applyer/CreateLyricsContainer.ts";
+import { $updateRequired, requestUpdatePanel } from "../../updater/runtimeState.ts";
 import { ResetLastLine } from "../../utils/Scrolling/ScrollToActiveLine.ts";
 import { $currentLyricsData } from "../../utils/stores.ts";
 import { $forceCompactMode, $isNowBarOpen } from "../../utils/uiState.ts";
@@ -180,6 +181,10 @@ export const ExitFullscreenElement = async () => {
 };
 
 export const EnterSpicyLyricsFullscreen = async () => {
+  if ($updateRequired.get()) {
+    requestUpdatePanel();
+    return;
+  }
   const mainElement = document.querySelector<HTMLElement>("#main");
   if (mainElement) {
     mainElement.style.display = "none";
@@ -195,6 +200,11 @@ export const EnterSpicyLyricsFullscreen = async () => {
   }
 
   document.documentElement.focus();
+  if ($updateRequired.get()) {
+    mainElement?.style.removeProperty("display");
+    await ExitFullscreenElement();
+    return;
+  }
 
   setTimeout(Compactify, 1000);
 };
@@ -215,6 +225,10 @@ function CleanupMediaBox() {
 }
 
 function Open(skipDocumentFullscreen: boolean = false, moveElement: boolean = true) {
+  if ($updateRequired.get()) {
+    requestUpdatePanel();
+    return;
+  }
   const SpicyPage = PageContainer;
   const Root = document.body as HTMLElement;
   const mainElement = document.querySelector<HTMLElement>("#main");

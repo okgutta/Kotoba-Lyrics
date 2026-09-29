@@ -85,6 +85,37 @@ sl-generic-modal.SpicyLyricsModal .slmodal-lyrivaUpdate .sl-sp-panel {
 .sl-update-error {
   color: #ffb9b9;
 }
+.sl-update-required-notice {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--on-material-hairline-strong);
+  border-radius: 12px;
+  background: var(--on-material-tint-bg-hover);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.sl-update-required-notice p {
+  margin: 0;
+}
+.sl-update-required-notice p + p {
+  margin-top: 8px;
+  color: var(--on-material-text-secondary);
+}
+#SpicyLyricsPage.sl-update-required-page {
+  display: grid;
+  place-items: center;
+  min-height: 320px;
+  height: 100%;
+  padding: 32px;
+  background: var(--spice-main, #121212);
+}
+.sl-update-required-page > section {
+  width: min(100%, 480px);
+  gap: 20px;
+}
+.sl-update-required-page .sl-update-actions {
+  justify-content: flex-start;
+}
 .sl-update-progress {
   display: flex;
   align-items: center;

@@ -5,6 +5,7 @@
  *  - 目标语言变化只读取对应缓存，不自动消耗翻译额度。
  */
 import Logger from "../../Logger.ts";
+import { $updateRequired } from "../../../updater/runtimeState.ts";
 import { decodeLyricsEntities } from "../textEntities.ts";
 import { notify } from "../../notify.ts";
 import {
@@ -454,6 +455,7 @@ async function translateMissingLines(uri: string, initialModel: Model): Promise<
 }
 
 async function handleTranslationToggle(): Promise<void> {
+  if ($updateRequired.get()) return;
   const uri = SpotifyPlayer.GetUri();
   const model = currentModel();
   if (!uri || !model || inFlight) return;
@@ -464,6 +466,12 @@ async function handleTranslationToggle(): Promise<void> {
 }
 
 registerTranslationToggleHandler(handleTranslationToggle);
+
+$updateRequired.listen((required) => {
+  if (!required) return;
+  resetTranslationForTrack(SpotifyPlayer.GetUri() || "");
+  $translationState.set("unavailable");
+});
 
 // 切歌时立即回到中性状态，不能让上一首歌的绿色/错误状态在新歌词加载期间残留。
 Global.Event.listen("playback:songchange", (event: any) => {

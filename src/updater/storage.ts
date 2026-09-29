@@ -1,3 +1,5 @@
+import { parseStoredPolicy, type UpdatePolicy } from "./policy.ts";
+
 export interface CachedRuntime {
   version: string;
   loaderVersion: number;
@@ -11,6 +13,7 @@ export interface StoredUpdates {
   pending?: CachedRuntime;
   trial?: { version: string; kind: "current" | "pending" };
   badVersion?: string;
+  policy?: UpdatePolicy;
 }
 
 export interface UpdateStorage {
@@ -72,6 +75,8 @@ function sanitizeState(value: unknown): StoredUpdates {
     state.trial = { version: value.trial.version, kind: value.trial.kind };
   }
   if (isVersion(value.badVersion)) state.badVersion = value.badVersion;
+  const policy = parseStoredPolicy(value.policy);
+  if (policy) state.policy = policy;
   return state;
 }
 

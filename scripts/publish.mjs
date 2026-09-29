@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
+import { buildUpdatePolicy } from "./update-policy.mjs";
 
 // CI's repository-scoped token is supplied by Actions, never bundled in the extension.
 const token = process.env.GITHUB_TOKEN;
@@ -96,6 +97,12 @@ if (latestVersion && compareVersions(versionParts, latestVersion) <= 0) {
 }
 const manifestBytes = await readFile("dist/manifest.json");
 const manifest = JSON.parse(manifestBytes);
+buildUpdatePolicy(
+  { minimumSupportedVersion: manifest.minimumSupportedVersion, reason: manifest.updateReason },
+  version
+);
+if (manifest.minimumSupportedVersion && manifest.loaderVersion < 2)
+  throw new Error("Minimum-version policy requires loader protocol 2 or later.");
 const runtimeBytes = await readFile("dist/lyrivamusic-runtime.js");
 if (
   manifest.version !== version ||

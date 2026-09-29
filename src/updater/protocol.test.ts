@@ -48,6 +48,18 @@ const manifest = {
   },
 };
 assert.equal(parseManifest(manifest, release).runtime.size, bytes.length);
+assert.equal(
+  parseManifest(
+    { ...manifest, minimumSupportedVersion: "1.2.0", updateReason: "旧接口停用" },
+    release
+  ).minimumSupportedVersion,
+  "1.2.0"
+);
+for (const minimumSupportedVersion of ["1.4.0", "v1.2.0", "1.2", "1.2.0-beta", 12, null]) {
+  assert.throws(() => parseManifest({ ...manifest, minimumSupportedVersion }, release));
+}
+assert.throws(() => parseManifest({ ...manifest, updateReason: 12 }, release));
+assert.throws(() => parseManifest({ ...manifest, updateReason: "x".repeat(1001) }, release));
 for (const url of [
   "https://unrelated.invalid/runtime.js",
   manifest.runtime.url + "?ref=other",

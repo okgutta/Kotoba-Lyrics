@@ -35,6 +35,7 @@ export default function UpdatePanel({
   onClose,
 }: Props) {
   const { phase, latestVersion, loaderUpdateRequired } = state;
+  const required = Boolean(state.updateRequired);
   const pending = Boolean(latestVersion && latestVersion !== state.currentVersion);
   const manual = !automaticUpdates || Boolean(loaderUpdateRequired);
   const busy = phase === "checking" || phase === "downloading" || phase === "available";
@@ -42,33 +43,41 @@ export default function UpdatePanel({
     typeof state.progress === "number" && Number.isFinite(state.progress)
       ? Math.max(0, Math.min(100, state.progress))
       : undefined;
-  const status = manual
-    ? loaderUpdateRequired
-      ? "下载新版即可继续"
-      : "手动更新 lyrivaMusic"
-    : phase === "ready"
-      ? "新版本已就绪"
-      : phase === "downloading"
-        ? "正在下载更新"
-        : phase === "available"
-          ? "发现新版本"
-          : phase === "checking"
-            ? "正在检查更新"
-            : phase === "error"
-              ? "更新未完成"
-              : "已是最新版本";
+  const status = required
+    ? "更新后继续使用歌词"
+    : manual
+      ? loaderUpdateRequired
+        ? "需要手动更新加载器"
+        : "手动更新 lyrivaMusic"
+      : phase === "ready"
+        ? "新版本已就绪"
+        : phase === "downloading"
+          ? "正在下载更新"
+          : phase === "available"
+            ? "发现新版本"
+            : phase === "checking"
+              ? "正在检查更新"
+              : phase === "error"
+                ? "更新未完成"
+                : "已是最新版本";
 
   const description = manual
     ? "下载 lyrivamusic.js，替换原文件后运行 spicetify apply。"
     : phase === "ready"
-      ? "重新加载后即可使用，也可以留到下次启动。"
+      ? required
+        ? "更新已下载并校验，重新加载界面后即可恢复歌词功能。"
+        : "更新已下载并校验，重新加载界面后生效，也可以留到下次启动。"
       : phase === "downloading" || phase === "available"
-        ? "可以继续听歌，下载会在后台完成。"
+        ? required
+          ? "正在下载更新，Spotify 播放不受影响。"
+          : "可以继续听歌，下载会在后台完成。"
         : phase === "checking"
           ? "正在获取最新版本信息。"
           : phase === "error"
             ? state.error || "暂时无法连接更新服务，请稍后重试。"
-            : "有新版本时，会在这里提醒你。";
+            : required
+              ? "检查更新或前往发布页手动安装新版。"
+              : "更新下载完成后会提醒你，下次启动时自动生效。";
 
   return (
     <div className="sl-update-panel" data-phase={manual ? "manual" : phase}>
@@ -76,6 +85,17 @@ export default function UpdatePanel({
         <div className="sl-update-status" role="status" aria-live="polite" aria-atomic="true">
           <p className="sl-update-brand">lyrivaMusic</p>
           <h2 className="sl-update-status-title">{status}</h2>
+          {required && (
+            <div className="sl-update-required-notice">
+              <p>
+                {state.updateReason || "当前版本已不再受支持，需要更新后才能继续使用歌词功能。"}
+              </p>
+              <p>
+                最低支持 v{state.minimumSupportedVersion}。歌词功能已暂停，关闭提示后仍可正常使用
+                Spotify。
+              </p>
+            </div>
+          )}
           <p className="sl-update-versions">
             <span>
               {pending ? "当前" : "版本"} v{state.currentVersion}
@@ -144,6 +164,15 @@ export default function UpdatePanel({
           </svg>
         </a>
         <div className="sl-update-actions">
+          {required && (
+            <button
+              type="button"
+              className="sl-update-button sl-update-button--quiet"
+              onClick={onClose}
+            >
+              暂时停用歌词
+            </button>
+          )}
           {manual ? (
             <a
               className="sl-update-button sl-update-button--primary"
@@ -155,19 +184,21 @@ export default function UpdatePanel({
             </a>
           ) : phase === "ready" ? (
             <>
-              <button
-                type="button"
-                className="sl-update-button sl-update-button--quiet"
-                onClick={onClose}
-              >
-                稍后
-              </button>
+              {!required && (
+                <button
+                  type="button"
+                  className="sl-update-button sl-update-button--quiet"
+                  onClick={onClose}
+                >
+                  下次启动生效
+                </button>
+              )}
               <button
                 type="button"
                 className="sl-update-button sl-update-button--primary"
                 onClick={onReload}
               >
-                重新加载
+                {required ? "更新并重新加载" : "立即重新加载"}
               </button>
             </>
           ) : phase === "error" ? (
@@ -179,9 +210,11 @@ export default function UpdatePanel({
               重试
             </button>
           ) : busy ? (
-            <button type="button" className="sl-update-button" onClick={onClose}>
-              {phase === "checking" ? "关闭" : "后台下载"}
-            </button>
+            required ? null : (
+              <button type="button" className="sl-update-button" onClick={onClose}>
+                {phase === "checking" ? "关闭" : "后台下载"}
+              </button>
+            )
           ) : (
             <button type="button" className="sl-update-button" onClick={onCheck}>
               检查更新

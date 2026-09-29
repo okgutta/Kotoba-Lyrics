@@ -54,7 +54,12 @@ import "./css/polyfills/generic-modal-polyfill.css";
 import "./css/polyfills/sonner-polyfill.css";
 import "./css/NPVLyrics.css";
 import { IsPIP, OpenPopupLyrics, ClosePopupLyrics } from "./components/Utils/PopupLyrics.ts";
-import { GetNPVCardElement, initNPVLyrics } from "./components/Utils/NPVLyrics.ts";
+import {
+  GetNPVCardElement,
+  initNPVLyrics,
+  DeRenderNPVCard,
+  RequestNPVCardEvaluate,
+} from "./components/Utils/NPVLyrics.ts";
 import ReactDOM from "react-dom/client";
 import { runThemeMatcher } from "./utils/themeMatcher.ts";
 import { guardSpicetifyScrollingFix } from "./utils/scrollFixGuard.ts";
@@ -68,6 +73,7 @@ import App from "./utils/app.ts";
 import { ensureSpicetifyMenuItem } from "./components/Utils/SpicetifyMenuCompat.ts";
 import { initializeUpdates } from "./utils/updates.tsx";
 import { ProjectVersion } from "../project/config.ts";
+import { $updateRequired } from "./updater/runtimeState.ts";
 
 async function main() {
   const appLogger = new Logger("App");
@@ -1119,5 +1125,19 @@ function registerSettingsMenu() {
 }
 
 await main();
+// Serialize transitions so a policy change during fullscreen/PiP cleanup cannot
+// reopen the old lyrics page or disturb Spotify's own navigation and playback.
+let updateGateTransition = Promise.resolve();
+$updateRequired.listen(() => {
+  updateGateTransition = updateGateTransition
+    .then(async () => {
+      if ($updateRequired.get()) await ClosePopupLyrics();
+      await DeRenderNPVCard();
+      await PageView.Destroy();
+      if (Spicetify.Platform.History.location.pathname === "/SpicyLyrics") await PageView.Open();
+      RequestNPVCardEvaluate();
+    })
+    .catch((error) => console.error("[lyrivaMusic] update gate transition failed", error));
+});
 window.__LYRIVA_UPDATER__?.markHealthy(ProjectVersion);
 initializeUpdates();

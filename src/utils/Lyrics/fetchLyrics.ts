@@ -1,4 +1,5 @@
 import { isDev } from "../../components/Global/Defaults.ts";
+import { $updateRequired } from "../../updater/runtimeState.ts";
 import { $currentLyricsData, $currentLyricsType, $currentlyFetching } from "../stores.ts";
 import { SpotifyPlayer } from "../../components/Global/SpotifyPlayer.ts";
 import PageView, { PageContainer } from "../../components/Pages/PageView.ts";
@@ -103,6 +104,7 @@ function trackLabel(target: TargetTrack): string {
 }
 
 function isActiveRequest(gen: number, uri: string, signal?: AbortSignal): boolean {
+  if ($updateRequired.get()) return false;
   return !signal?.aborted && !isStale(gen) && SpotifyPlayer.GetUri() === uri;
 }
 
@@ -384,6 +386,7 @@ async function prefetchLyricsInner(
 
 /** Fetch one queued track into persistent cache without mutating current lyrics UI state. */
 export function prefetchLyrics(target: TargetTrack): Promise<LyricsPrefetchResult> {
+  if ($updateRequired.get()) return Promise.resolve("unavailable");
   const existing = inflightLyricsPrefetches.get(target.uri);
   if (existing && !existing.controller.signal.aborted) return existing.promise;
 
@@ -440,10 +443,18 @@ export function cancelLyricsFetch(): void {
   HideLoaderContainer();
 }
 
+$updateRequired.listen((required) => {
+  if (!required) return;
+  cancelLyricsFetch();
+  for (const entry of inflightLyricsPrefetches.values()) entry.controller.abort();
+  inflightLyricsPrefetches.clear();
+});
+
 export default async function fetchLyrics(
   uri: string,
   options: { forceRefresh?: boolean } = {}
 ): Promise<LyricsResult | null> {
+  if ($updateRequired.get()) return null;
   if (!isTrackUri(uri)) {
     lyricsLogger.debug("Ignoring malformed track URI", uri);
     return null;

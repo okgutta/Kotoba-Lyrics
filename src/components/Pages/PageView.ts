@@ -1,4 +1,6 @@
 import fetchLyrics, { cancelLyricsFetch } from "../../utils/Lyrics/fetchLyrics.ts";
+import { $updateRequired } from "../../updater/runtimeState.ts";
+import { createUpdateRequiredNotice } from "../Utils/UpdateRequiredNotice.ts";
 import { $forceCompactMode } from "../../utils/uiState.ts";
 import "../../css/Loaders/DotLoader.css";
 import "../../css/lyrics-reading.css";
@@ -147,6 +149,14 @@ async function OpenPage(
   }
 
   if (PageView.IsOpened) return;
+  if ($updateRequired.get()) {
+    if (options?.cardMode) return;
+    PageContainer = createUpdateRequiredNotice(() => Session.GoBack());
+    (AppendTo ?? GetPageRoot())?.appendChild(PageContainer);
+    PageView.IsOpened = true;
+    IsCardMode = false;
+    return;
+  }
 
   IsCardMode = !!options?.cardMode;
   const elem = document.createElement("div");

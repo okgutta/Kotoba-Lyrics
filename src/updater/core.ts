@@ -1,4 +1,5 @@
 import type { UpdateBridge, UpdateState } from "./contracts.ts";
+import { policyState, type UpdatePolicy } from "./policy.ts";
 import {
   createUpdateStorage,
   type CachedRuntime,
@@ -94,6 +95,7 @@ export async function startUpdater(
   let badVersion: string | undefined;
   let release: Release | undefined;
   let manifest: UpdateManifest | undefined;
+  let policy: UpdatePolicy | undefined;
   let checkFlight: Promise<void> | undefined;
   let downloadFlight: Promise<void> | undefined;
 
@@ -157,12 +159,21 @@ export async function startUpdater(
       if (!found || compareVersions(found.version, state.currentVersion) <= 0) {
         release = undefined;
         manifest = undefined;
-        publish({ phase: "idle", currentVersion: state.currentVersion });
+        publish({
+          phase: "idle",
+          currentVersion: state.currentVersion,
+          ...policyState(policy, state.currentVersion),
+        });
         return;
       }
-      if (found.version === badVersion)
-        throw new Error("此版本上次启动未完成，已恢复原版本；请等待下一版本或重新安装扩展");
       const nextManifest = parseManifest(await requestJson(request, manifestUrl(found)), found);
+      policy = nextManifest.minimumSupportedVersion
+        ? {
+            latestVersion: found.version,
+            minimumSupportedVersion: nextManifest.minimumSupportedVersion,
+            updateReason: nextManifest.updateReason,
+          }
+        : undefined;
       release = found;
       manifest = nextManifest;
       const available: UpdateState = {
@@ -172,8 +183,17 @@ export async function startUpdater(
         notes: found.notes,
         releaseUrl: found.url,
         loaderUpdateRequired: nextManifest.loaderVersion > options.loaderVersion,
+        ...policyState(policy, state.currentVersion),
       };
       publish(available);
+      await storage.update((saved) => {
+        const next = { ...saved };
+        if (policy) next.policy = policy;
+        else delete next.policy;
+        return next;
+      });
+      if (found.version === badVersion)
+        throw new Error("此版本上次启动未完成，已恢复可用版本；请检查后续更新或重新安装扩展");
       if (available.loaderUpdateRequired) return;
       const saved = await storage.read();
       if (
@@ -209,6 +229,7 @@ export async function startUpdater(
     },
     download() {
       if (!release || !manifest) return bridge.check();
+      if (release.version === badVersion) return bridge.check();
       if (!downloadFlight)
         downloadFlight = Promise.resolve()
           .then(fetchUpdate)
@@ -248,6 +269,7 @@ export async function startUpdater(
 
   try {
     let saved = await storage.read();
+    policy = saved.policy;
     if (saved.trial) {
       const trial = saved.trial;
       await storage.update((existing) => {
@@ -285,12 +307,21 @@ export async function startUpdater(
       // A durable trial marker makes unacknowledged startup recoverable on the
       // next launch. Never attempt a second runtime in an already-running host.
       await storage.update((existing) => ({ ...existing, trial }));
-      publish({ phase: "idle", currentVersion: selected.version });
-    }
+      publish({
+        phase: "idle",
+        currentVersion: selected.version,
+        ...policyState(policy, selected.version),
+      });
+    } else publish({ ...state, ...policyState(policy, options.fallbackVersion) });
   } catch (error) {
     selected = undefined;
     selectedKind = undefined;
-    failed(error);
+    publish({
+      phase: "error",
+      currentVersion: options.fallbackVersion,
+      error: errorMessage(error),
+      ...policyState(policy, options.fallbackVersion),
+    });
   }
   try {
     await execute(selected?.code ?? options.fallbackCode);

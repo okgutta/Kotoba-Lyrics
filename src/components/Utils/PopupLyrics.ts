@@ -1,5 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 import Session from "../Global/Session.ts";
+import { $updateRequired, requestUpdatePanel } from "../../updater/runtimeState.ts";
 import PageView from "../Pages/PageView.ts";
 import Fullscreen from "./Fullscreen.ts";
 import { NPVCardOwnsPage, DeRenderNPVCard, RequestNPVCardEvaluate } from "./NPVLyrics.ts";
@@ -17,6 +18,10 @@ let currentPipWindow: PictureInPictureWindow | null = null;
 let pipPageHideHandler: ((event: Event) => void) | null = null;
 
 export const OpenPopupLyrics = async () => {
+  if ($updateRequired.get()) {
+    requestUpdatePanel();
+    return;
+  }
   IsPIPOpening = true;
   try {
     await OpenPopupLyricsFlow(0);
@@ -33,6 +38,7 @@ export const OpenPopupLyrics = async () => {
 const MAX_POPUP_FLOW_DEPTH = 3;
 
 const OpenPopupLyricsFlow = async (depth = 0): Promise<void> => {
+  if ($updateRequired.get()) return;
   if (depth > MAX_POPUP_FLOW_DEPTH) {
     throw new Error("OpenPopupLyricsFlow: 无法关闭已打开的歌词页（重入超限）");
   }
@@ -72,6 +78,11 @@ const OpenPopupLyricsFlow = async (depth = 0): Promise<void> => {
     height: 379,
   })) as PictureInPictureWindow;
   currentPipWindow = pipWindow;
+  if ($updateRequired.get()) {
+    pipWindow.close();
+    currentPipWindow = null;
+    return;
+  }
 
   // Copy style sheets over from the initial document
   // so that the player looks the same.
@@ -162,6 +173,11 @@ const OpenPopupLyricsFlow = async (depth = 0): Promise<void> => {
 
   const pipWrapper = pipWindow.document.body.querySelector(".spicy-pip-wrapper") as HTMLElement;
 
+  if ($updateRequired.get()) {
+    pipWindow.close();
+    currentPipWindow = null;
+    return;
+  }
   IsPIP = true;
 
   PageView.Open(pipWrapper);

@@ -1,20 +1,21 @@
 import { useStore } from "@nanostores/react";
-import { atom } from "nanostores";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { ProjectVersion } from "../../project/config.ts";
 import { PopupModal } from "../components/Modal.ts";
 import UpdatePanel from "../components/ReactComponents/UpdatePanel.tsx";
 import type { UpdateBridge, UpdateState } from "../updater/contracts.ts";
+import { createUpdateNotices, updateNoticeKey } from "../updater/notifications.ts";
+import { $updateState, setUpdatePanelOpener } from "../updater/runtimeState.ts";
 import "../css/update-panel.css";
 
-export const $updateState = atom<UpdateState>({ phase: "idle", currentVersion: ProjectVersion });
+export { $updateState };
 
 const CHECK_INTERVAL_MS = 30 * 60 * 1000;
 const MODAL_ID = "lyrivaUpdate";
-const presentedVersions = new Set<string>();
+const notices = createUpdateNotices(() => window.localStorage);
 let initialized = false;
-let pendingVersion: string | undefined;
+let pendingNotice: string | undefined;
 let waitingForModal: MutationObserver | undefined;
 
 export function getUpdateBridge(): UpdateBridge | undefined {
@@ -62,9 +63,8 @@ function ConnectedUpdatePanel() {
 export function openUpdatesPanel(): void {
   refreshState();
   if (PopupModal.querySelector(`.slmodal-${MODAL_ID}`) && PopupModal.isConnected) return;
-  const version = $updateState.get().latestVersion;
-  if (version) presentedVersions.add(version);
-  pendingVersion = undefined;
+  notices.markPresented($updateState.get());
+  pendingNotice = undefined;
   waitingForModal?.disconnect();
   waitingForModal = undefined;
 
@@ -88,12 +88,12 @@ export function openUpdatesPanel(): void {
 }
 
 function presentPendingUpdate(): void {
-  if (!pendingVersion) return;
+  if (!pendingNotice) return;
   // Wait for settings (including unsaved credential drafts) and other dialogs.
   if (document.querySelector('sl-generic-modal, [role="dialog"][aria-modal="true"]')) return;
   const state = $updateState.get();
-  if (state.latestVersion !== pendingVersion || state.latestVersion === state.currentVersion) {
-    pendingVersion = undefined;
+  if (updateNoticeKey(state) !== pendingNotice || !notices.shouldPresent(state)) {
+    pendingNotice = undefined;
     waitingForModal?.disconnect();
     waitingForModal = undefined;
     return;
@@ -103,16 +103,19 @@ function presentPendingUpdate(): void {
 
 function receiveState(state: UpdateState): void {
   $updateState.set(state);
-  const version = state.latestVersion;
-  if (!version || version === state.currentVersion || presentedVersions.has(version)) return;
-  if (!["available", "downloading", "ready"].includes(state.phase)) return;
-  if (PopupModal.isConnected && PopupModal.querySelector(`.slmodal-${MODAL_ID}`)) {
-    presentedVersions.add(version);
+  if (!notices.shouldPresent(state)) {
+    pendingNotice = undefined;
+    waitingForModal?.disconnect();
+    waitingForModal = undefined;
     return;
   }
-  pendingVersion = version;
+  if (PopupModal.isConnected && PopupModal.querySelector(`.slmodal-${MODAL_ID}`)) {
+    notices.markPresented(state);
+    return;
+  }
+  pendingNotice = updateNoticeKey(state);
   presentPendingUpdate();
-  if (pendingVersion && !waitingForModal) {
+  if (pendingNotice && !waitingForModal) {
     waitingForModal = new MutationObserver(presentPendingUpdate);
     waitingForModal.observe(document.body, { childList: true, subtree: true });
   }
@@ -124,6 +127,7 @@ export function initializeUpdates(): void {
   const bridge = getUpdateBridge();
   if (!bridge) return;
   initialized = true;
+  setUpdatePanelOpener(openUpdatesPanel);
   bridge.subscribe(receiveState);
   receiveState(bridge.getState());
   void runUpdateAction("check");

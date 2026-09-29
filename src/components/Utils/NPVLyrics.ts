@@ -5,6 +5,7 @@
 // PiP and fullscreen — a single reconciler keeps the card in whichever state
 // the live conditions allow.
 import PageView from "../Pages/PageView.ts";
+import { $updateRequired } from "../../updater/runtimeState.ts";
 import Fullscreen from "./Fullscreen.ts";
 import { IsPIP, _IsPIP_after, IsPIPOpening } from "./PopupLyrics.ts";
 import Session from "../Global/Session.ts";
@@ -85,6 +86,7 @@ function hiddenForMissingLyrics(): boolean {
 }
 
 function desiredState(): CardState {
+  if ($updateRequired.get()) return "DORMANT";
   if ($disableNpvLyrics.get()) return "DORMANT";
   const npv = getNPV();
   // closest("[inert]") covers the whole .Root__right-sidebar <-> aside chain
@@ -588,6 +590,7 @@ export function initNPVLyrics(): void {
   watcherMaid.Give($hideNpvLyricsWhenUnavailable.listen(() => scheduleEvaluate()));
   // Turning the card off tears it down live; turning it back on re-injects it.
   watcherMaid.Give($disableNpvLyrics.listen(() => scheduleEvaluate()));
+  watcherMaid.Give($updateRequired.listen(() => scheduleEvaluate()));
 
   Whentil.When(
     () => document.querySelector(".Root__right-sidebar") ?? document.querySelector(".Root"),

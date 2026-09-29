@@ -25,10 +25,16 @@ function deferred<T>() {
 }
 function store<T>(initial: T) {
   let value = initial;
+  const listeners = new Set<(value: T) => void>();
   return {
     get: () => value,
     set: (next: T) => {
       value = next;
+      for (const listener of listeners) listener(value);
+    },
+    listen(listener: (value: T) => void) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
     },
   };
 }
@@ -84,7 +90,7 @@ const bundle = await build({
         builder.onResolve(
           {
             filter:
-              /\/(?:Defaults|stores|SpotifyPlayer|PageView|ProcessLyrics|Logger|Store|lyriva|genius|Global|diagnostics)\.ts$/,
+              /\/(?:Defaults|stores|SpotifyPlayer|PageView|ProcessLyrics|Logger|Store|lyriva|genius|Global|diagnostics|runtimeState)\.ts$/,
           },
           (args) => ({ path: args.path.split("/").pop()!, namespace: "pipeline-fixture" })
         );
@@ -94,6 +100,7 @@ const bundle = await build({
             "stores.ts":
               "export const { $currentLyricsData, $currentLyricsType, $currentlyFetching } = fixture.stores;",
             "SpotifyPlayer.ts": "export const SpotifyPlayer = fixture.player;",
+            "runtimeState.ts": "export const { $updateRequired } = fixture.stores;",
             "PageView.ts":
               "export const PageContainer = fixture.page; export default { AppendViewControls() {}, IsOpened: true };",
             "ProcessLyrics.ts": "export async function ProcessLyrics() { return false; }",
@@ -122,6 +129,7 @@ async function createPipeline() {
   const items = new Map<string, LyricsCacheEntry>();
   const calls: Array<{ target: TargetTrack; signal: AbortSignal }> = [];
   const stores = {
+    $updateRequired: store(false),
     $currentLyricsData: store(""),
     $currentLyricsType: store("None"),
     $currentlyFetching: store(false),
@@ -377,6 +385,24 @@ try {
       false,
       "A completed prior failure is stale after retry"
     );
+    app.cancelLyricsFetch();
+  }
+  {
+    const { app, fixture, calls, stores } = await createPipeline();
+    const pending = deferred<LyrivaResult>();
+    fixture.sourceResult = () => pending.promise;
+    const running = app.default(uri);
+    await until(() => calls.length === 1, "Expected in-flight lyrics request");
+    stores.$updateRequired.set(true);
+    assert.equal(calls[0].signal.aborted, true, "Mandatory policy cancels in-flight lyrics");
+    assert.equal(await app.default(uri), null);
+    assert.equal(await app.prefetchLyrics(target), "unavailable");
+    assert.equal(calls.length, 1, "Blocked lyrics cannot issue more requests");
+    pending.resolve({ kind: "ok", model: model("stale-after-required-update") });
+    assert.equal(await running, null, "Late results cannot overwrite the update gate");
+    stores.$updateRequired.set(false);
+    fixture.sourceResult = async () => ({ kind: "ok", model: model("supported-again") });
+    assert.equal(textOf(await app.default(uri)), "supported-again");
     app.cancelLyricsFetch();
   }
 } finally {

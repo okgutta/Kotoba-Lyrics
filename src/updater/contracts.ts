@@ -9,6 +9,9 @@ export interface UpdateState {
   progress?: number;
   error?: string;
   loaderUpdateRequired?: boolean;
+  minimumSupportedVersion?: string;
+  updateReason?: string;
+  updateRequired?: boolean;
 }
 
 export interface UpdateBridge {

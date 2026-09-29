@@ -96,6 +96,7 @@ const bundle = await build({
         builder.onLoad({ filter: /.*/, namespace: "npv-fixture" }, ({ path }) => {
           const modules: Record<string, string> = {
             "PageView.ts": "export default fixture.page;",
+            "runtimeState.ts": "export const { $updateRequired } = fixture.stores;",
             "Fullscreen.ts": "export default fixture.fullscreen;",
             "PopupLyrics.ts":
               "export const IsPIP = false, _IsPIP_after = false, IsPIPOpening = false;",
@@ -142,6 +143,7 @@ function createFixture(
   const fixture = {
     stores: {
       $npvLyricsOpen: store(true),
+      $updateRequired: store(false),
       $npvLyricsExpanded: store(false),
       $currentLyricsData: store(""),
       $disableNpvLyrics: store(false),
@@ -353,6 +355,19 @@ navigation.transitions[0].finish();
 await navigation.tick();
 assert.equal(navigation.api.GetNPVCardElement(), null);
 assert.equal(navigation.fixture.stores.$npvLyricsExpanded.get(), false);
+
+const requiredUpdate = await start();
+requiredUpdate.fixture.stores.$updateRequired.set(true);
+await requiredUpdate.tick();
+assert.equal(
+  requiredUpdate.api.GetNPVCardElement(),
+  null,
+  "Mandatory update removes the lyrics card"
+);
+assert.equal(requiredUpdate.fixture.page.IsOpened, false);
+requiredUpdate.fixture.stores.$updateRequired.set(false);
+await requiredUpdate.tick();
+assert.ok(requiredUpdate.api.GetNPVCardElement(), "A relaxed policy allows the card again");
 console.log(
   "NPVLyrics: rapid toggles, detached cards, teardown, fallback and cancellation verified"
 );

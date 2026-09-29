@@ -1,6 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 import { $currentLyricsData, $currentLyricsType } from "../../stores.ts";
+import { $updateRequired } from "../../../updater/runtimeState.ts";
 import { ClearScrollSimplebar } from "../../Scrolling/Simplebar/ScrollSimplebar.ts";
 import { setBlurringLastLine } from "../Animator/Lyrics/LyricsAnimator.ts";
 import { DestroyAllLyricsContainers } from "../Applyer/CreateLyricsContainer.ts";
@@ -42,6 +43,7 @@ let lastAppliedResult: [object | string, number] | null = null;
 export default async function ApplyLyrics(
   lyricsContent: [object | string, number] | null
 ): Promise<void> {
+  if ($updateRequired.get()) return;
   if (!PageContainer) return;
   if (!lyricsContent) return;
   if (!isCurrentLyricsResult(lyricsContent)) return;
