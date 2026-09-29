@@ -212,6 +212,7 @@ export function NavigationRow({
   description,
   value,
   indicator,
+  indicatorPlacement = "value",
   valueState,
   onClick,
   disabled,
@@ -223,6 +224,7 @@ export function NavigationRow({
   value?: string;
   /** 在当前值旁显示状态圆点。 */
   indicator?: boolean;
+  indicatorPlacement?: "label" | "value";
   /** ok = 已配置（蓝），unset = 未配置（弱灰）；缺省 = 中性灰 */
   valueState?: "ok" | "unset";
   onClick: () => void;
@@ -246,8 +248,18 @@ export function NavigationRow({
         onClick={onClick}
       >
         <span className="sl-sp-label-wrap">
-          <span className="sl-sp-label" id={labelId}>
-            {label}
+          <span className="sl-sp-label-line">
+            <span className="sl-sp-label" id={labelId}>
+              {label}
+            </span>
+            {indicator && indicatorPlacement === "label" && (
+              <span
+                className="sl-sp-nav-dot"
+                role="img"
+                aria-label="有可用更新"
+                title="有可用更新"
+              />
+            )}
           </span>
           {description && (
             <span className="sl-sp-description" id={descriptionId}>
@@ -263,7 +275,7 @@ export function NavigationRow({
               {value}
             </span>
           )}
-          {indicator && (
+          {indicator && indicatorPlacement === "value" && (
             <span className="sl-sp-nav-dot" role="img" aria-label="有可用更新" title="有可用更新" />
           )}
           <svg

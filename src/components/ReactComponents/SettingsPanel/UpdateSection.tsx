@@ -37,12 +37,13 @@ export default function UpdateSection({
   return (
     <Section>
       <NavigationRow
-        label="版本与更新"
-        value={value}
+        label={compact ? value : "版本与更新"}
+        value={compact ? undefined : value}
         indicator={
           compact &&
           (pending || Boolean(state.updateRequired) || Boolean(state.loaderUpdateRequired))
         }
+        indicatorPlacement="label"
         description={compact ? undefined : description}
         onClick={onOpenDetail}
       />

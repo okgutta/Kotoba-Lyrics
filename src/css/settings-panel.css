@@ -414,6 +414,12 @@ sl-generic-modal.SpicyLyricsModal
   flex: 1;
   min-width: 0;
 }
+.sl-sp-label-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
 
 .sl-sp-label {
   font-size: var(--text-body-size) !important;
@@ -594,15 +600,6 @@ sl-generic-modal.SpicyLyricsModal
   flex-shrink: 0;
   color: var(--color-text-tertiary);
 
-  .sl-sp-nav-dot {
-    width: 6px;
-    height: 6px;
-    flex: 0 0 6px;
-    border-radius: 50%;
-    background: var(--slsp-accent-text);
-    box-shadow: 0 0 0 3px var(--slsp-accent-tint);
-  }
-
   .sl-sp-nav-value-text {
     font-size: var(--text-body-size) !important;
     color: var(--color-text-secondary);
@@ -625,6 +622,14 @@ sl-generic-modal.SpicyLyricsModal
       color 0.15s ease,
       transform 0.15s var(--slsp-ease-out);
   }
+}
+.sl-sp-nav-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: var(--slsp-accent-text);
+  box-shadow: 0 0 0 3px var(--slsp-accent-tint);
 }
 
 /* ── Select / Input（二级页内使用）：井式底 + accent 聚焦环 ── */
