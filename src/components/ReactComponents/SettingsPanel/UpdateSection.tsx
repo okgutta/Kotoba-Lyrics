@@ -39,14 +39,12 @@ export default function UpdateSection({
     return (
       <button
         type="button"
-        className="sl-sp-version-link sl-sp-nav-row"
+        className="sl-sp-version-link"
         onClick={onOpenDetail}
-        aria-label={`打开版本与更新，当前版本 ${value}`}
+        aria-label={`打开版本与更新，当前版本 ${value}${indicator ? "，有可用更新" : ""}`}
       >
         <span className="sl-sp-version-label">{value}</span>
-        {indicator && (
-          <span className="sl-sp-nav-dot" role="img" aria-label="有可用更新" title="有可用更新" />
-        )}
+        {indicator && <span className="sl-sp-version-dot" aria-hidden="true" />}
       </button>
     );
   }

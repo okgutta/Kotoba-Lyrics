@@ -186,40 +186,59 @@ sl-generic-modal.SpicyLyricsModal
   flex-direction: column;
   gap: 20px;
 }
-.sl-sp-page {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-}
 .sl-sp-page-footer {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: auto;
-  padding-top: 14px;
+  flex: 0 0 auto;
+  padding: 4px 24px 20px;
 }
-.sl-sp-row.sl-sp-version-link {
+/* Standalone footer link: never inherit the full-width settings row material. */
+.sl-sp-version-link {
+  appearance: none;
   display: inline-flex;
+  position: relative;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
   width: max-content;
   max-width: 100%;
   min-height: 32px;
   margin: 0;
   padding: 6px 10px;
-  gap: 8px;
-  border-radius: var(--radius-pill);
-  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
   text-align: center;
   color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: color 150ms ease;
 }
-.sl-sp-row.sl-sp-version-link:not(:disabled):hover {
-  background: transparent;
+.sl-sp-version-link:hover,
+.sl-sp-version-link:focus-visible {
   color: var(--color-text-primary);
 }
+.sl-sp-version-link:focus-visible {
+  outline: 2px solid var(--slsp-accent-ring);
+  outline-offset: 2px;
+}
 .sl-sp-version-label {
-  font-size: 12px !important;
-  font-weight: var(--w-semibold);
+  font-size: 13px !important;
+  font-weight: var(--w-medium);
   line-height: 1.35;
   letter-spacing: 0.01em;
+}
+.sl-sp-version-dot {
+  position: absolute;
+  top: calc(50% - 2.5px);
+  right: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--slsp-accent-text);
+  pointer-events: none;
 }
 .sl-sp-page-title {
   margin: 0 0 14px;
@@ -263,7 +282,7 @@ sl-generic-modal.SpicyLyricsModal
   font-weight: var(--w-semibold);
   margin: 0 12px;
 }
-.sl-sp-search-category:not(:has(.sl-sp-row, .sl-sp-nav-row)) {
+.sl-sp-search-category:not(:has(.sl-sp-row, .sl-sp-nav-row, .sl-sp-version-link)) {
   display: none;
 }
 /* 搜索：玻璃胶囊，聚焦时 ring 转 accent */
@@ -476,7 +495,7 @@ sl-generic-modal.SpicyLyricsModal
   flex-shrink: 0;
 }
 
-/* Neutral switch, matching the player controls. */
+/* Match upstream: dark off track / bright on track, with a light knob in both states. */
 .sl-sp-toggle {
   position: relative;
   display: inline-flex;
@@ -496,8 +515,10 @@ sl-generic-modal.SpicyLyricsModal
   .sl-sp-toggle-track {
     width: 42px;
     height: 25px;
-    background: rgba(255, 255, 255, 0.16);
-    box-shadow: inset 0 0 0 1px var(--slsp-hairline);
+    background: rgba(0, 0, 0, 0.42);
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.45),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.06);
     border-radius: 13px;
     transition:
       background 0.18s ease,
@@ -512,27 +533,47 @@ sl-generic-modal.SpicyLyricsModal
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: #ffffff;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
-      transition: transform 0.24s var(--slsp-ease-spring);
+      background: rgba(245, 245, 245, 0.78);
+      box-shadow:
+        0 2px 5px rgba(0, 0, 0, 0.5),
+        0 0 0 0.5px rgba(0, 0, 0, 0.28);
+      transition:
+        transform 0.22s var(--slsp-ease-spring),
+        background 0.22s ease,
+        box-shadow 0.22s ease;
+    }
+  }
+
+  &:not(.sl-sp-toggle--disabled):hover .sl-sp-toggle-track {
+    background: rgba(0, 0, 0, 0.5);
+
+    &::after {
+      background: rgba(255, 255, 255, 0.9);
     }
   }
 
   input:checked + .sl-sp-toggle-track {
-    background: var(--slsp-accent);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.42);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.24);
 
     &::after {
       transform: translateX(17px);
-      background: var(--color-text-on-fill);
+      background: #ffffff;
+      box-shadow:
+        0 2px 6px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(0, 0, 0, 0.18);
     }
   }
 
+  &:not(.sl-sp-toggle--disabled):hover input:checked + .sl-sp-toggle-track {
+    background: rgba(255, 255, 255, 0.52);
+  }
+
   input:focus-visible + .sl-sp-toggle-track {
-    outline: none;
-    box-shadow:
-      inset 0 0 0 1px var(--slsp-hairline-strong),
-      0 0 0 2px var(--slsp-accent-ring);
+    outline: 2px solid var(--slsp-accent-ring);
+    outline-offset: 3px;
   }
 }
 
@@ -1529,20 +1570,6 @@ sl-generic-modal.SpicyLyricsModal
   box-shadow:
     var(--liquid-edge),
     0 4px 12px -4px rgba(8, 10, 18, 0.45);
-}
-
-.sl-sp-toggle-track {
-  background: var(--material-regular-bg) !important;
-  -webkit-backdrop-filter: var(--material-regular-blur);
-  backdrop-filter: var(--material-regular-blur);
-  box-shadow: var(--liquid-edge) !important;
-}
-
-.sl-sp-toggle input:checked + .sl-sp-toggle-track {
-  background: rgba(255, 255, 255, 0.2) !important;
-  box-shadow:
-    var(--liquid-edge-strong),
-    0 4px 14px -5px rgba(8, 10, 18, 0.45) !important;
 }
 
 .sl-sp-slider-track {

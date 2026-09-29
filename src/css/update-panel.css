@@ -1,36 +1,87 @@
-/* Shared settings rows and detail frame own the update page appearance. */
+/* An editorial update page inside the shared settings detail frame. */
 .sl-sp-update-page {
   min-height: 0;
+}
+.sl-sp-update-page .sl-sp-detail-body {
+  gap: 22px;
+  padding-top: 22px;
+  padding-right: 6px;
+}
+.sl-sp-update-summary {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 12px;
+}
+.sl-sp-update-product {
+  margin: 0;
+  font-size: 12px;
+  font-weight: var(--w-medium);
+  color: var(--color-text-tertiary);
+}
+.sl-sp-update-versions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--color-text-tertiary);
 }
 .sl-sp-update-version {
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
+  font-size: 30px;
+  font-weight: var(--w-semibold);
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+.sl-sp-update-version--previous {
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  font-weight: var(--w-medium);
+  letter-spacing: 0;
 }
 .sl-sp-update-status {
   display: grid;
-  gap: 8px;
-  padding: 16px;
+  gap: 5px;
 }
 .sl-sp-update-status p {
   margin: 0;
 }
+.sl-sp-update-status-title {
+  font-size: 14px;
+  font-weight: var(--w-semibold);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+}
+.sl-sp-update-description,
+.sl-sp-update-empty {
+  font-size: 13px;
+  font-weight: var(--w-regular);
+  color: var(--color-text-secondary);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.sl-sp-update-status[data-attention="true"] .sl-sp-update-status-title,
 .sl-sp-update-status .sl-sp-update-error {
   color: var(--color-status-danger);
 }
 .sl-sp-update-required {
   display: grid;
   gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid var(--slsp-hairline);
+  padding-left: 12px;
+  border-left: 2px solid var(--color-status-danger);
   font-size: var(--text-footnote-size);
   color: var(--color-text-secondary);
   line-height: 1.6;
+}
+.sl-sp-update-required p {
+  margin: 0;
 }
 .sl-sp-update-progress {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 16px 16px;
+  padding-top: 2px;
   font-size: var(--text-footnote-size);
   font-variant-numeric: tabular-nums;
 }
@@ -51,9 +102,62 @@
   border-radius: var(--radius-pill);
 }
 .sl-sp-update-notes {
-  padding: 12px 16px;
   color: var(--color-text-secondary);
   font-size: var(--text-body-size);
+}
+.sl-sp-update-changelog {
+  padding-top: 20px;
+  padding-bottom: 8px;
+  border-top: 1px solid var(--slsp-hairline);
+}
+.sl-sp-update-changelog-title {
+  margin: 0 0 14px;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: var(--w-semibold);
+}
+.sl-sp-update-empty {
+  margin: 0;
+}
+.sl-sp-update-page .sl-sp-update-notes .sl-update-notes-content {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: var(--w-regular);
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+.sl-sp-update-page .sl-update-notes-content h3 {
+  font-size: 13px;
+  margin-block: 16px 8px;
+}
+.sl-sp-update-page .sl-update-notes-content > :first-child {
+  margin-top: 0;
+}
+.sl-sp-update-page .sl-sp-detail-footer {
+  min-height: 56px;
+  padding-block: 12px 0;
+}
+.sl-sp-update-page .sl-sp-detail-footer .sl-sp-btn {
+  min-height: 38px;
+  border-radius: 9px;
+  padding-inline: 16px;
+}
+.sl-sp-update-page .sl-sp-detail-footer .sl-sp-update-later {
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  color: var(--color-text-secondary);
+}
+.sl-sp-update-page .sl-sp-detail-footer .sl-sp-update-later:hover {
+  color: var(--color-text-primary);
+}
+.sl-sp-update-page .sl-sp-detail-footer .sl-sp-btn--primary {
+  background: var(--accent);
+  color: var(--accent-on-fill);
+  box-shadow: none;
+}
+.sl-sp-update-page .sl-sp-detail-footer .sl-sp-btn--primary:hover {
+  background: var(--accent-hover);
 }
 .sl-sp-update-link {
   color: var(--color-text-secondary);

@@ -115,7 +115,8 @@ export default function SettingsPanel({ initialPage }: SettingsPanelProps) {
     if (!categories) return;
     setSearchEmpty(
       Array.from(categories).every(
-        (category) => category.querySelectorAll(".sl-sp-row, .sl-sp-nav-row").length === 0
+        (category) =>
+          category.querySelectorAll(".sl-sp-row, .sl-sp-nav-row, .sl-sp-version-link").length === 0
       )
     );
   }, [searching, query, activeCategory, detail]);
@@ -232,19 +233,19 @@ export default function SettingsPanel({ initialPage }: SettingsPanelProps) {
               <div className="sl-sp-page-groups">
                 {sectionFor(activeCategory, query, activeCategory, openDetail)}
               </div>
-              {activeCategory === "advanced" && (
-                <div className="sl-sp-page-footer">
-                  <UpdateSection
-                    query={query}
-                    sectionFilter="advanced"
-                    compact
-                    onOpenDetail={() => openDetail("updates")}
-                  />
-                </div>
-              )}
             </div>
           )}
         </div>
+        {!detail && !searching && activeCategory === "advanced" && (
+          <footer className="sl-sp-page-footer">
+            <UpdateSection
+              query={query}
+              sectionFilter="advanced"
+              compact
+              onOpenDetail={() => openDetail("updates")}
+            />
+          </footer>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
 import { ProjectName } from "../../../project/config.ts";
 import type { UpdateState } from "../../updater/contracts.ts";
 import DetailShell from "./SettingsPanel/DetailShell.tsx";
-import { Row, Section } from "./SettingsPanel/components.tsx";
 import UpdateReleaseNotes from "./UpdateReleaseNotes.tsx";
 
 interface Props {
@@ -86,6 +85,10 @@ export default function UpdatePanel({
       : busy && phase !== "checking" && !manual
         ? "后台下载"
         : "关闭";
+  const showSecondary =
+    required ||
+    (!manual && (phase === "ready" || phase === "downloading" || phase === "available"));
+  const notes = state.notes?.trim();
   const actions = (
     <>
       <a
@@ -97,9 +100,11 @@ export default function UpdatePanel({
         发布说明 ↗
       </a>
       <div className="sl-sp-inline-controls sl-sp-detail-actions">
-        <button type="button" className="sl-sp-btn" onClick={onClose}>
-          {secondary}
-        </button>
+        {showSecondary && (
+          <button type="button" className="sl-sp-btn sl-sp-update-later" onClick={onClose}>
+            {secondary}
+          </button>
+        )}
         {manual ? (
           <a
             className="sl-sp-btn sl-sp-btn--primary"
@@ -136,23 +141,55 @@ export default function UpdatePanel({
       actions={actions}
       className="sl-sp-update-page"
     >
-      <Section title="更新状态">
-        <div className="sl-sp-update-status" role="status" aria-live="polite" aria-atomic="true">
-          <p className="sl-sp-label">{title}</p>
+      <section className="sl-sp-update-summary" aria-label={`${ProjectName} 版本信息`}>
+        <p className="sl-sp-update-product">{pending ? "可用更新" : "当前安装"}</p>
+        <div className="sl-sp-update-versions" aria-label="当前与可更新版本">
+          <span
+            className={"sl-sp-update-version" + (pending ? " sl-sp-update-version--previous" : "")}
+            aria-label={`当前版本 v${state.currentVersion}`}
+          >
+            v{state.currentVersion}
+          </span>
+          {pending && (
+            <>
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path
+                  d="M4 10h12m-5-5 5 5-5 5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className="sl-sp-update-version" aria-label={`可更新版本 v${latestVersion}`}>
+                v{latestVersion}
+              </span>
+            </>
+          )}
+        </div>
+        <div
+          className="sl-sp-update-status"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          data-attention={required || phase === "error" ? "true" : undefined}
+        >
+          <p className="sl-sp-update-status-title">{title}</p>
           <p
             className={
-              "sl-sp-description" + (phase === "error" && !manual ? " sl-sp-update-error" : "")
+              "sl-sp-update-description" +
+              (phase === "error" && !manual ? " sl-sp-update-error" : "")
             }
           >
             {description}
           </p>
-          {required && (
-            <div className="sl-sp-update-required">
-              <p>{state.updateReason || "当前版本已不再受支持，需要更新后才能继续使用歌词。"}</p>
-              <p>最低支持 v{state.minimumSupportedVersion}。歌词已暂停，Spotify 播放不受影响。</p>
-            </div>
-          )}
         </div>
+        {required && (
+          <div className="sl-sp-update-required" role="note">
+            <p>{state.updateReason || "当前版本已不再受支持，需要更新后才能继续使用歌词。"}</p>
+            <p>最低支持 v{state.minimumSupportedVersion}。歌词已暂停，Spotify 播放不受影响。</p>
+          </div>
+        )}
         {!manual && busy && (
           <div className="sl-sp-update-progress">
             <progress
@@ -165,24 +202,23 @@ export default function UpdatePanel({
             )}
           </div>
         )}
-      </Section>
-      <Section title={ProjectName}>
-        <Row label="当前版本">
-          <span className="sl-sp-update-version">v{state.currentVersion}</span>
-        </Row>
-        {pending && (
-          <Row label="可更新版本">
-            <span className="sl-sp-update-version">v{latestVersion}</span>
-          </Row>
-        )}
-      </Section>
-      {pending && state.notes?.trim() && (
-        <Section title="本次更新">
+      </section>
+      <section className="sl-sp-update-changelog" aria-label="更新内容">
+        <h3 className="sl-sp-update-changelog-title">
+          {pending || notes ? "本次更新" : "更新说明"}
+        </h3>
+        {notes ? (
           <div className="sl-sp-update-notes">
-            <UpdateReleaseNotes notes={state.notes} />
+            <UpdateReleaseNotes notes={notes} />
           </div>
-        </Section>
-      )}
+        ) : (
+          <p className="sl-sp-update-empty">
+            {pending
+              ? "此版本暂未提供更新内容，可在发布说明中查看详情。"
+              : "新版本发布后，更新内容会显示在这里。"}
+          </p>
+        )}
+      </section>
     </DetailShell>
   );
 }
