@@ -1,8 +1,10 @@
 import fetchLyrics, { cancelLyricsFetch } from "../../utils/Lyrics/fetchLyrics.ts";
+import { SkeletonMarkup } from "../../utils/Lyrics/LyricsSkeleton.ts";
 import { $updateRequired } from "../../updater/runtimeState.ts";
 import { createUpdateRequiredNotice } from "../Utils/UpdateRequiredNotice.ts";
 import { $forceCompactMode } from "../../utils/uiState.ts";
 import "../../css/Loaders/DotLoader.css";
+import "../../css/Loaders/LyricsSkeleton.css";
 import "../../css/lyrics-reading.css";
 import { DestroyAllLyricsContainers } from "../../utils/Lyrics/Applyer/CreateLyricsContainer.ts";
 import ApplyLyrics from "../../utils/Lyrics/Global/Applyer.ts";
@@ -195,6 +197,7 @@ async function OpenPage(
                 <div class="loaderContainer">
                     <div id="DotLoader"></div>
                 </div>
+                ${SkeletonMarkup}
                 <div class="LyricsContent ScrollbarScrollable"></div>
             </div>
             <div class="ViewControls"></div>

@@ -65,11 +65,6 @@ function sectionFor(
     case "advanced":
       return (
         <>
-          <UpdateSection
-            query={query}
-            sectionFilter={sectionFilter}
-            onOpenDetail={() => openDetail("updates")}
-          />
           <ExperimentsSection query={query} sectionFilter={sectionFilter} />
           <DeveloperSection query={query} sectionFilter={sectionFilter} />
         </>
@@ -214,6 +209,14 @@ export default function SettingsPanel({ initialPage }: SettingsPanelProps) {
                   {sectionFor(section.value, query, "All", openDetail)}
                 </div>
               ))}
+              <div className="sl-sp-search-category" role="group" aria-label="版本与更新">
+                <h2 className="sl-sp-search-category-title">版本与更新</h2>
+                <UpdateSection
+                  query={query}
+                  sectionFilter="All"
+                  onOpenDetail={() => openDetail("updates")}
+                />
+              </div>
               {searchEmpty && (
                 <div className="sl-sp-empty">
                   <p className="sl-sp-empty-title">没有找到相关设置</p>
@@ -227,6 +230,14 @@ export default function SettingsPanel({ initialPage }: SettingsPanelProps) {
             <div className="sl-sp-page">
               <div className="sl-sp-page-groups">
                 {sectionFor(activeCategory, query, activeCategory, openDetail)}
+              </div>
+              <div className="sl-sp-page-footer">
+                <UpdateSection
+                  query={query}
+                  sectionFilter="footer"
+                  compact
+                  onOpenDetail={() => openDetail("updates")}
+                />
               </div>
             </div>
           )}

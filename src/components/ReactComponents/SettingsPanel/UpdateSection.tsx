@@ -6,18 +6,22 @@ export default function UpdateSection({
   query,
   sectionFilter,
   onOpenDetail,
+  compact = false,
 }: {
   query: string;
   sectionFilter: string;
   onOpenDetail: () => void;
+  compact?: boolean;
 }) {
   const state = useStore($updateState);
-  if (sectionFilter !== "All" && sectionFilter !== "advanced") return null;
+  if (sectionFilter !== "All" && sectionFilter !== "footer") return null;
   if (!matches(query, "版本与更新", "检查更新 自动下载 重新加载 强制更新 最低版本")) return null;
   const pending = state.latestVersion && state.latestVersion !== state.currentVersion;
-  const value = pending
-    ? `v${state.currentVersion} → v${state.latestVersion}`
-    : `v${state.currentVersion}`;
+  const value = compact
+    ? `v${state.currentVersion}`
+    : pending
+      ? `v${state.currentVersion} → v${state.latestVersion}`
+      : `v${state.currentVersion}`;
   const description = state.updateRequired
     ? "歌词功能已暂停，请更新后继续使用"
     : state.loaderUpdateRequired
@@ -34,7 +38,7 @@ export default function UpdateSection({
       <NavigationRow
         label="版本与更新"
         value={value}
-        description={description}
+        description={compact ? undefined : description}
         onClick={onOpenDetail}
       />
     </Section>

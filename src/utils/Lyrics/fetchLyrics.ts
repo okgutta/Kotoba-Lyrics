@@ -946,11 +946,16 @@ function ShowLoaderContainer(): void {
   const loaderContainer = PageContainer?.querySelector<HTMLElement>(
     ".LyricsContainer .loaderContainer"
   );
+  const skeleton = PageContainer?.querySelector<HTMLElement>(
+    ".LyricsContainer .sl-lyrics-skeleton"
+  );
   if (loaderContainer) {
     if (ContainerShowLoaderTimeout) clearTimeout(ContainerShowLoaderTimeout);
     ContainerShowLoaderTimeout = setTimeout(() => {
       ContainerShowLoaderTimeout = null;
-      loaderContainer.classList.add("active");
+      // Keep the existing loader node as a fallback, but present the richer
+      // lyrics-shaped placeholder once the request lasts long enough to need it.
+      skeleton?.classList.add("active");
     }, 200);
   }
 }
@@ -958,6 +963,9 @@ function ShowLoaderContainer(): void {
 function HideLoaderContainer(): void {
   const loaderContainer = PageContainer?.querySelector<HTMLElement>(
     ".LyricsContainer .loaderContainer"
+  );
+  const skeleton = PageContainer?.querySelector<HTMLElement>(
+    ".LyricsContainer .sl-lyrics-skeleton"
   );
   if (loaderContainer) {
     if (ContainerShowLoaderTimeout) {
@@ -967,6 +975,7 @@ function HideLoaderContainer(): void {
     loaderContainer.classList.remove("active", "queued");
     loaderContainer.querySelector(".loaderMessage")?.remove();
   }
+  skeleton?.classList.remove("active");
 }
 
 export function ClearLyricsPageContainer(): void {

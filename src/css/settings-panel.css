@@ -186,6 +186,11 @@ sl-generic-modal.SpicyLyricsModal
   flex-direction: column;
   gap: 20px;
 }
+.sl-sp-page-footer {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--slsp-hairline);
+}
 .sl-sp-page-title {
   margin: 0 0 14px;
   font-size: var(--text-body-size) !important;
