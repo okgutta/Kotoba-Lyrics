@@ -17,9 +17,8 @@ export default function UpdateSection({
   if (sectionFilter !== "All" && sectionFilter !== "advanced") return null;
   if (!matches(query, "版本与更新", "检查更新 自动下载 重新加载 强制更新 最低版本")) return null;
   const pending = Boolean(state.latestVersion && state.latestVersion !== state.currentVersion);
-  const shortVersion = state.currentVersion.split(".").slice(0, 2).join(".");
   const value = compact
-    ? `v${shortVersion}`
+    ? `v${state.currentVersion}`
     : pending
       ? `v${state.currentVersion} → v${state.latestVersion}`
       : `v${state.currentVersion}`;
