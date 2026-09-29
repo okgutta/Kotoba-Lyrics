@@ -14,18 +14,18 @@
 
 先安装 [Spicetify](https://spicetify.app/docs/getting-started/)。
 
-1. 下载最新 Release 中的 [lyrivamusic.js](https://github.com/okgutta/Kotoba-Lyrics/releases/latest/download/lyrivamusic.js)。
+1. 下载最新 Release 中的 [kotoba-lyrics.js](https://github.com/okgutta/Kotoba-Lyrics/releases/latest/download/kotoba-lyrics.js)。
 2. 放入 Spicetify 的 `Extensions` 文件夹；已安装用户覆盖同名文件。
 3. 执行：
 
 ```bash
-spicetify config extensions lyrivamusic.js
+spicetify config extensions kotoba-lyrics.js
 spicetify apply
 ```
 
 播放歌曲后，点击播放栏的 **Kotoba Lyrics** 打开歌词。设置和更新入口位于歌词页齿轮或 Spotify 菜单。
 
-安装文件沿用旧名 `lyrivamusic.js` 以兼容已有配置。更名前的版本请手动覆盖安装一次，切换到新的更新地址。
+旧用户先运行 `spicetify config extensions lyrivamusic.js-` 移除旧文件的启用记录，再按上述步骤安装。原有设置与缓存保留。插件商店搜索 **Kotoba Lyrics**；若仍显示旧名称，请完整退出并重新打开 Spotify。
 
 ## 开发
 

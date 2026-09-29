@@ -1,6 +1,6 @@
 # 自动更新与发布
 
-从 v1.3.0 起，`lyrivamusic.js` 是固定的更新加载器，并内置本次发布的完整扩展作为离线兜底。无需额外后台程序。
+安装文件统一为 `kotoba-lyrics.js`，包含更新加载器和完整扩展作为离线兜底，无需额外后台程序。自动更新从 v1.3.0 起提供。
 
 ## 用户更新流程
 
@@ -11,11 +11,11 @@
 5. 自动检查失败不弹错误窗；可从设置的「版本与更新」查看错误、重试或前往发布页手动安装。需要升级加载器时无需等待运行包下载，直接提示手动更新。
 6. 低于维护者声明的最低支持版本时，暂停歌词获取、预取、翻译及歌词视图，提示更新原因。可以关闭提示或点「暂时停用歌词」，Spotify 的导航、播放和设置入口仍可使用。再次打开歌词页会显示更新入口。
 
-首次安装和手动更新都只需下载 Release 附件 `lyrivamusic.js`，放入或覆盖 Spicetify 的 `Extensions/lyrivamusic.js` 后执行 `spicetify apply`。GitHub 自动生成的 `Source code (zip/tar.gz)` 是源码归档，不是安装包。
+首次安装和手动更新只需下载 Release 附件 `kotoba-lyrics.js`，放入 Spicetify 的 `Extensions` 文件夹，再执行 `spicetify config extensions kotoba-lyrics.js` 和 `spicetify apply`。旧用户须先用 `spicetify config extensions lyrivamusic.js-` 停用旧文件，避免重复加载。GitHub 的 `Source code (zip/tar.gz)` 是源码归档，不是安装包。
 
 v1.2.0 及以前没有加载器，需要手动覆盖安装一次。将来的更新如果需要升级加载器协议，更新页也会明确引导手动安装。
 
-从 **v1.6.0** 起使用加载器协议 **2**。协议 1 不会读取最低版本策略，因此旧安装必须按提示手动覆盖一次 `lyrivamusic.js` 并执行 `spicetify apply`；此后兼容协议 2 的版本继续自动更新。不能仅替换运行包就声称旧加载器已经支持强制更新。
+从 **v1.6.0** 起使用加载器协议 **2**。协议 1 不会读取最低版本策略，因此旧安装必须按提示手动覆盖一次 `kotoba-lyrics.js` 并执行 `spicetify apply`；此后兼容协议 2 的版本继续自动更新。不能仅替换运行包就声称旧加载器已经支持强制更新。
 
 ## 最低支持版本
 
@@ -52,14 +52,16 @@ v1.2.0 及以前没有加载器，需要手动覆盖安装一次。将来的更�
 
 | 文件                     | 分发位置                             | 用途                                         |
 | ------------------------ | ------------------------------------ | -------------------------------------------- |
-| `lyrivamusic.js`         | Release 唯一安装附件                 | 首次安装或手动更新的加载器，含离线兜底版本   |
+| `kotoba-lyrics.js`       | Release 唯一安装附件                 | 首次安装或手动更新的加载器，含离线兜底版本   |
 | `lyrivamusic-runtime.js` | `updates/versions/v<版本>/`          | 自动更新下载的完整扩展，含样式               |
 | `manifest.json`          | `updates/versions/v<版本>/`          | 版本、加载器协议、运行包地址、大小和 SHA-256 |
 | `SHA256SUMS.txt`         | 本地或 CI 的 `dist/`，不上传 Release | 构建产物校验                                 |
 
-新版本 Release 只上传 `lyrivamusic.js`；运行包和清单在 `updates` 分支分发。当前分发路径为 `https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/updates/versions/v<版本>/manifest.json`，以及同目录下的 `lyrivamusic-runtime.js`。仓库更名前的安装包仍内置旧地址，需要手动覆盖安装一次以切换更新渠道。
+用户安装文件固定为 `kotoba-lyrics.js`。自动更新协议中的 `lyrivamusic-runtime.js` 是内部兼容路径，保留它以便已安装的加载器继续校验和下载；它不会作为商店安装包显示。
 
-发布任务先上传并校验 Release 草稿中的 `lyrivamusic.js`，再在 `updates` 分支的一次提交中写入运行包与清单；验证分发地址后才公开 Release。重试旧流程创建的草稿时，会清理其中的运行包、清单和校验文件附件。已公开的 Release 和分发文件不会被覆盖，历史版本附件保持原样。
+新版本 Release 只上传 `kotoba-lyrics.js`；运行包和清单在 `updates` 分支分发。当前分发路径为 `https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/updates/versions/v<版本>/manifest.json`，以及同目录下的 `lyrivamusic-runtime.js`。仓库更名前的安装包仍内置旧地址，需要手动覆盖安装一次以切换更新渠道。
+
+发布任务先上传并校验 Release 草稿中的 `kotoba-lyrics.js`，再在 `updates` 分支的一次提交中写入运行包与清单；验证分发地址后才公开 Release。重试旧流程创建的草稿时，会清理其中的运行包、清单和校验文件附件。已公开的 Release 和分发文件不会被覆盖，历史版本附件保持原样。
 
 客户端只接受本仓库最新正式 Release，拒绝预发布、回退版本、其他仓库地址、错误大小或摘要的包。运行包保存在 Spotify Origin 下的 IndexedDB，歌词缓存清理不会删除更新缓存。凭据、账号和歌词数据不会随更新检查发送。
 

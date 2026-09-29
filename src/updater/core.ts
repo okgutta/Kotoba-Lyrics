@@ -82,7 +82,7 @@ export async function startUpdater(
     ((code: string) => {
       // The only remote code path is the fixed repository release channel after
       // byte-size and SHA-256 verification. No user-supplied URL reaches this call.
-      new Function(`${code}\n//# sourceURL=lyrivamusic-runtime.js`)();
+      new Function(`${code}\n//# sourceURL=kotoba-lyrics-runtime.js`)();
     });
   const reload = environment.reload ?? (() => location.reload());
   const listeners = new Set<(state: UpdateState) => void>();

@@ -72,6 +72,7 @@ import { onFrame } from "./modules/FrameLoop.ts";
 import App from "./utils/app.ts";
 import { ensureSpicetifyMenuItem } from "./components/Utils/SpicetifyMenuCompat.ts";
 import { initializeUpdates } from "./utils/updates.tsx";
+import { refreshMarketplaceNameCache } from "./utils/marketplace.ts";
 import { ProjectVersion } from "../project/config.ts";
 import { $updateRequired } from "./updater/runtimeState.ts";
 
@@ -1124,6 +1125,7 @@ function registerSettingsMenu() {
   profileMenuItem.register();
 }
 
+refreshMarketplaceNameCache();
 await main();
 // Serialize transitions so a policy change during fullscreen/PiP cleanup cannot
 // reopen the old lyrics page or disturb Spotify's own navigation and playback.

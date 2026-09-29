@@ -114,11 +114,11 @@ if (
 ) {
   throw new Error("Release build and manifest differ.");
 }
-const installerBytes = await readFile("dist/lyrivamusic.js");
+const installerBytes = await readFile("dist/kotoba-lyrics.js");
 const installerDigest = `sha256:${hash(installerBytes)}`;
-const existingInstaller = release?.assets.find((asset) => asset.name === "lyrivamusic.js");
+const existingInstaller = release?.assets.find((asset) => asset.name === "kotoba-lyrics.js");
 if (existingInstaller && existingInstaller.digest !== installerDigest)
-  throw new Error("Existing draft asset differs: lyrivamusic.js");
+  throw new Error("Existing draft asset differs: kotoba-lyrics.js");
 let notes;
 try {
   notes = await readFile(`docs/releases/${tag}.md`, "utf8");
@@ -150,15 +150,20 @@ if (!release)
   });
 // Users install one file. Internal update artifacts are served from updates only.
 if (!existingInstaller) {
-  const url = release.upload_url.replace(/\{.*$/, "") + "?name=lyrivamusic.js";
+  const url = release.upload_url.replace(/\{.*$/, "") + "?name=kotoba-lyrics.js";
   const uploaded = await request(url, { method: "POST", body: installerBytes, binary: true });
   if (uploaded.digest !== installerDigest)
-    throw new Error("Asset verification failed: lyrivamusic.js");
+    throw new Error("Asset verification failed: kotoba-lyrics.js");
 }
 
 // A retry may resume a draft created by the previous publisher. Remove only
 // its known internal attachments; published releases exited above untouched.
-const internalAssets = new Set(["lyrivamusic-runtime.js", "manifest.json", "SHA256SUMS.txt"]);
+const internalAssets = new Set([
+  "lyrivamusic.js",
+  "lyrivamusic-runtime.js",
+  "manifest.json",
+  "SHA256SUMS.txt",
+]);
 for (const asset of release.assets) {
   if (internalAssets.has(asset.name)) {
     await request(`/releases/assets/${asset.id}`, { method: "DELETE" });

@@ -1,4 +1,4 @@
 export const ProjectName = "Kotoba Lyrics";
-// Keep the installed filename and release channel compatible with existing users.
-export const ProjectArtifactName = "lyrivamusic";
+// Public installation filename follows the product name.
+export const ProjectArtifactName = "kotoba-lyrics";
 export const ProjectVersion = "1.6.0";

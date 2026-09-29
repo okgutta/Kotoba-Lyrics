@@ -27,7 +27,7 @@ try {
   await writeFile(join(directory, "package.json"), '{"version":"1.3.0"}');
   await writeFile(join(directory, "dist/lyrivamusic-runtime.js"), runtime);
   await writeFile(join(directory, "dist/manifest.json"), manifest);
-  await writeFile(join(directory, "dist/lyrivamusic.js"), "installer");
+  await writeFile(join(directory, "dist/kotoba-lyrics.js"), "installer");
   await writeFile(join(directory, "docs/releases/v1.3.0.md"), "Release notes");
   // Replace fetch before importing the actual publisher. No network call can escape
   // this fixture; unknown requests fail the child process immediately.
@@ -65,9 +65,9 @@ globalThis.fetch = async (input, init = {}) => {
   if (path === "/releases/tags/v1.3.0") {
     if (["published", "published-cleanup", "published-stale"].includes(mode)) return json({ ...draft, draft: false });
     if (["retry", "retry-legacy", "installer-mismatch"].includes(mode)) {
-      const assets = [{ id: 10, name: "lyrivamusic.js", digest: mode === "installer-mismatch" ? "sha256:wrong" : "sha256:" + digest(readFileSync("dist/lyrivamusic.js")) }];
+      const assets = [{ id: 10, name: "kotoba-lyrics.js", digest: mode === "installer-mismatch" ? "sha256:wrong" : "sha256:" + digest(readFileSync("dist/kotoba-lyrics.js")) }];
       if (mode === "retry-legacy" || mode === "installer-mismatch") assets.push(...["lyrivamusic-runtime.js", "manifest.json", "SHA256SUMS.txt"].map((name, index) => ({id: 11 + index, name})));
-      if (mode === "retry-legacy") assets.push({ id: 14, name: "maintainer-notes.txt" });
+      if (mode === "retry-legacy") assets.push({ id: 14, name: "lyrivamusic.js" }, { id: 15, name: "maintainer-notes.txt" });
       return json({ ...draft, assets });
     }
     return json(null, 404);
@@ -91,14 +91,14 @@ globalThis.fetch = async (input, init = {}) => {
     return json(pagedReleases[Number(url.searchParams.get("page")) - 1] ?? []);
   }
   if (url.hostname === "uploads.github.com") {
-    assert.equal(url.searchParams.get("name"), "lyrivamusic.js", "only the installer is a Release attachment");
+    assert.equal(url.searchParams.get("name"), "kotoba-lyrics.js", "only the installer is a Release attachment");
     uploads++;
     return json({ digest: "sha256:" + (mode === "bad-upload" ? "bad" : digest(init.body)) });
   }
   if (path.startsWith("/releases/assets/") && method === "DELETE") {
     assert.equal(mode, "retry-legacy", "clean internal attachments only on an existing draft");
     const id = Number(path.split("/").pop());
-    assert.ok([11, 12, 13].includes(id), "never remove the installer");
+    assert.ok([11, 12, 13, 14].includes(id), "never remove the current installer or maintainer notes");
     removedAssets.push(id);
     return new Response(null, { status: 204 });
   }
@@ -113,7 +113,7 @@ globalThis.fetch = async (input, init = {}) => {
   if (path === "/git/blobs") return json({ sha: "new-blob" });
   if (path === "/git/trees") {
     assert.equal(uploads, ["retry", "retry-legacy"].includes(mode) ? 0 : 1, "verify the single installer before channel publication");
-    assert.deepEqual(removedAssets, mode === "retry-legacy" ? [11, 12, 13] : []);
+    assert.deepEqual(removedAssets, mode === "retry-legacy" ? [11, 12, 13, 14] : []);
     assert.deepEqual(JSON.parse(init.body).tree.map(item => item.path).sort(), ["versions/v1.3.0/lyrivamusic-runtime.js", "versions/v1.3.0/manifest.json"], "runtime and manifest retain the existing update URLs in one commit");
     return json({ sha: "tree" });
   }

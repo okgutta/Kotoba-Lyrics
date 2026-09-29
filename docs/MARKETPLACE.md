@@ -1,6 +1,6 @@
 # Marketplace 发布说明
 
-仓库已配置 `spicetify-extensions` Topic、发布清单与真实预览图。Spotify 中的 Marketplace 安装尚未实测；如暂时无法搜索到扩展，可使用 [README 中的手动安装方式](../README.md#手动安装)。
+商店名称固定为 **Kotoba Lyrics**，安装文件固定为 `kotoba-lyrics.js`。仓库通过 `spicetify-extensions` Topic 被发现，根清单同时包含 `kotoba` 和 `kotoba-lyrics` 搜索标签。Spotify 中的 Marketplace 安装尚未实测；如暂时无法搜索到扩展，可使用 [手动安装](../README.md#安装)。
 
 ## 官方规则
 
@@ -14,6 +14,8 @@
 
 GitHub 搜索索引及 Marketplace 缓存可能延迟更新，不承诺固定的收录时间。只有确认可以搜索并完成安装验证后，才将 README 状态更新为已收录。
 
+Marketplace 会将仓库列表及清单存入会话缓存。新版启动时只清理本仓库的旧名称、旧下载地址及相关过期搜索缓存，不修改已安装条目、主题或用户设置。如果仍显示旧名称，请完整退出并重开 Spotify。原先通过 Marketplace 安装旧条目的用户，可先卸载旧条目再安装 Kotoba Lyrics，避免同时启用两份。
+
 ## 发布文件
 
 | 文件或地址                                         | 用途                                             |
@@ -21,16 +23,16 @@ GitHub 搜索索引及 Marketplace 缓存可能延迟更新，不承诺固定的
 | [根目录 manifest.json](../manifest.json)           | Marketplace 展示与安装清单。                     |
 | [README.md](../README.md)                          | 简体中文项目介绍、安装与使用说明。               |
 | [docs/marketplace.png](marketplace.png)            | 当前 Kotoba Lyrics 在 Spotify 中的实际界面预览。 |
-| `lyrivamusic.js`                                   | Release 中的单文件安装附件。                     |
+| `kotoba-lyrics.js`                                 | Release 中的单文件安装附件。                     |
 | [LICENSE](../LICENSE) 与 [NOTICE.md](../NOTICE.md) | 主许可证、上游归属与第三方许可声明。             |
 
 根清单的 `main` 使用稳定安装地址：
 
 ```text
-https://github.com/okgutta/Kotoba-Lyrics/releases/latest/download/lyrivamusic.js
+https://github.com/okgutta/Kotoba-Lyrics/releases/latest/download/kotoba-lyrics.js
 ```
 
-每次正式发布都应保留 `lyrivamusic.js` 文件名。Marketplace 的安装标识包含 `main`，不要随版本更换清单中的地址，以免产生重复条目；源码分支也无需再保存一份编译安装包。
+每次正式发布都应保留 `kotoba-lyrics.js` 文件名。Marketplace 的安装标识包含 `main`，不要随版本更换清单中的地址，以免产生重复条目；源码分支也无需再保存一份编译安装包。
 
 根清单的 `preview` 使用 `docs/marketplace.png`，`readme` 使用 `README.md`。更新截图时应展示真实的歌词主体和 Spotify 场景，不包含账号、私密播放列表或密钥。
 
@@ -47,8 +49,8 @@ https://github.com/okgutta/Kotoba-Lyrics/releases/latest/download/lyrivamusic.js
    bun run build --no-copy
    ```
 
-3. 检查根清单是合法 JSON，所有引用文件存在，`dist/lyrivamusic.js` 正常生成，版本与源码一致。
-4. 将审核后的改动提交并推送到默认分支 `main`。现有 GitHub Actions 完成检查、构建和发布，等待工作流成功并核对正式 Release 中的 `lyrivamusic.js`。
+3. 检查根清单是合法 JSON，所有引用文件存在，`dist/kotoba-lyrics.js` 正常生成，版本与源码一致。
+4. 将审核后的改动提交并推送到默认分支 `main`。现有 GitHub Actions 完成检查、构建和发布，等待工作流成功并核对正式 Release 中的 `kotoba-lyrics.js`。
 5. 验证 [远程根清单](https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/main/manifest.json)、[预览图](https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/main/docs/marketplace.png)、README 和稳定安装地址均可访问；安装地址追加时间戳后也应正常返回脚本内容。
 6. 在 GitHub 仓库的 **About → Topics** 添加 `spicetify-extensions`，使仓库具备被 Marketplace 发现的条件。
 7. 完成下面的 Marketplace 安装验证，再更新项目的收录状态。

@@ -63,7 +63,7 @@ export default function UpdatePanel({
                 ? "更新未完成"
                 : "已是最新版本";
   const description = manual
-    ? "下载 lyrivamusic.js，替换原文件后运行 spicetify apply。"
+    ? "下载 kotoba-lyrics.js，按发布页说明停用旧文件并启用新文件，再运行 spicetify apply。"
     : phase === "ready"
       ? required
         ? "更新已下载并校验，重新加载后即可恢复歌词功能。"

@@ -115,4 +115,4 @@ bun run typecheck
 bun run check
 ```
 
-构建产物为 `dist/lyrivamusic.js`。运行时仍保留历史 `/SpicyLyrics` 路由和 DOM/CSS namespace，以兼容已安装用户和 Spotify 页面结构。
+构建产物为 `dist/kotoba-lyrics.js`。运行时仍保留历史 `/SpicyLyrics` 路由和 DOM/CSS namespace，以兼容已安装用户和 Spotify 页面结构。

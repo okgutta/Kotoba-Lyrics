@@ -1,6 +1,6 @@
 import { build, transform } from "esbuild";
 import { execFileSync } from "node:child_process";
-import { readFile, writeFile, copyFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, copyFile, mkdir, rm } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { resolve, join } from "node:path";
@@ -33,7 +33,7 @@ execFileSync(
     env: { ...process.env, SPICETIFY_SKIP: "true", JITI_FS_CACHE: "0" },
   }
 );
-const compiled = await readFile("dist/lyrivamusic.js", "utf8");
+const compiled = await readFile("dist/kotoba-lyrics.js", "utf8");
 const runtime = (
   await transform(wrapRuntime(compiled), {
     minify: true,
@@ -54,7 +54,7 @@ await build({
   minify: true,
   format: "iife",
   target: "chrome120",
-  outfile: "dist/lyrivamusic.js",
+  outfile: "dist/kotoba-lyrics.js",
   legalComments: "inline",
 });
 const hash = (data) => createHash("sha256").update(data).digest("hex");
@@ -70,11 +70,12 @@ const manifest = {
   },
 };
 await writeFile("dist/manifest.json", JSON.stringify(manifest, null, 2) + "\n");
-const assets = ["lyrivamusic.js", "lyrivamusic-runtime.js", "manifest.json"];
+const assets = ["kotoba-lyrics.js", "lyrivamusic-runtime.js", "manifest.json"];
 const checksums = await Promise.all(
   assets.map(async (name) => `${hash(await readFile(join("dist", name)))}  ${name}`)
 );
 await writeFile("dist/SHA256SUMS.txt", checksums.join("\n") + "\n");
+await rm("dist/lyrivamusic.js", { force: true });
 console.log(`Built Kotoba Lyrics ${version}: installer, runtime, update manifest and checksums.`);
 
 if (!args.includes("--no-copy") && !process.env.CI && process.env.SPICETIFY_SKIP !== "true") {
@@ -87,7 +88,12 @@ if (!args.includes("--no-copy") && !process.env.CI && process.env.SPICETIFY_SKIP
   if (!configDir) throw new Error("Unable to determine the Spicetify config directory.");
   const target = resolve(configDir, "Extensions");
   await mkdir(target, { recursive: true });
-  await copyFile("dist/lyrivamusic.js", join(target, "lyrivamusic.js"));
+  await copyFile("dist/kotoba-lyrics.js", join(target, "kotoba-lyrics.js"));
   console.log(`Copied installer to ${target}`);
-  if (args.includes("--apply")) execFileSync(executable, ["apply"], { stdio: "inherit" });
+  if (args.includes("--apply")) {
+    // Enable the new filename and remove only our legacy entry; preserve other extensions.
+    execFileSync(executable, ["config", "extensions", "kotoba-lyrics.js"], { stdio: "inherit" });
+    execFileSync(executable, ["config", "extensions", "lyrivamusic.js-"], { stdio: "inherit" });
+    execFileSync(executable, ["apply"], { stdio: "inherit" });
+  }
 }
