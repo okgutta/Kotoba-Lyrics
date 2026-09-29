@@ -195,6 +195,19 @@ sl-generic-modal.SpicyLyricsModal
   margin-top: auto;
   padding-top: 20px;
 }
+.sl-sp-section--version .sl-sp-group {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+}
+.sl-sp-section--version .sl-sp-nav-row {
+  min-height: 36px;
+  padding: 6px 12px;
+}
+.sl-sp-section--version .sl-sp-nav-row:not(:disabled):hover {
+  background: transparent;
+}
 .sl-sp-page-title {
   margin: 0 0 14px;
   font-size: var(--text-body-size) !important;

@@ -35,7 +35,7 @@ export default function UpdateSection({
             ? "正在下载更新"
             : undefined;
   return (
-    <Section>
+    <Section className={compact ? "sl-sp-section--version" : undefined}>
       <NavigationRow
         label={compact ? value : "版本与更新"}
         value={compact ? undefined : value}
