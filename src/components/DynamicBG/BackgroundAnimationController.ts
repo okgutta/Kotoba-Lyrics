@@ -88,12 +88,6 @@ export class BackgroundAnimationController {
     }
 
     // add tiny high-speed jitters for sharp sounds (snares, synths)
-    /* const currentSegment = this.getActiveElement(data.segments, currentTime);
-        if (currentSegment) {
-            if (currentSegment.loudness_max > -10 && currentSegment.loudness_max_time < 0.05) {
-                currentSpeed += 0.25; 
-            }
-        } */
 
     return Math.max(0.1, Math.min(currentSpeed, 3.0));
   }

@@ -87,10 +87,6 @@
   );
 }
 
-/* #SpicyLyricsPage.Fullscreen.MinimalLyricsMode .LyricsContainer .LyricsContent {
-  --vertical-gap: 14cqh;
-} */
-
 #SpicyLyricsPage .LyricsContainer .LyricsContent.HiddenTransitioned {
   opacity: 0;
 }
@@ -154,16 +150,3 @@ body:has(.Root:not(.global-nav))
   margin-top: 0cqh;
   padding-top: 40cqh;
 }
-/* 
-#SpicyLyricsPage .LyricsContainer .LyricsContent .BottomSpacer {
-  display: block;
-  height: 45vh;
-  width: 100%;
-}
-
-#SpicyLyricsPage .LyricsContainer .LyricsContent .TopSpacer {
-  display: block;
-  height: 20vh;
-  width: 100%;
-}
- */

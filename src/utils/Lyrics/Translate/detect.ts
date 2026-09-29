@@ -1,6 +1,6 @@
 /**
  * 语言归一化 / 同语言判断 —— 供歌词翻译的「已在目标语言则跳过」使用。
- * 歌词模型上的 Language / LanguageISO2 由 ProcessLyrics 用 franc + langs 填充。
+ * 歌词模型上的 Language / LanguageISO2 由 ProcessLyrics 使用 franc 与语言映射填充。
  */
 
 /** franc 三字母码 → ISO2（franc 会返回 cmn/jpn/eng… 甚至带脚本后缀 cmn-Hani） */

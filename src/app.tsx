@@ -288,11 +288,6 @@ async function main() {
           Icons.LyricsPage,
           (self) => {
             if (!self.active) {
-              /* const isNewFullscreen = document.querySelector<HTMLElement>(".QdB2YtfEq0ks5O4QbtwX .WRGTOibB8qNEkgPNtMxq");
-                if (isNewFullscreen) {
-                  PageView.Open();
-                  self.active = true;
-                } else  */
               Session.Navigate({ pathname: "/SpicyLyrics" });
               if (Global.Saves.shift_key_pressed) {
                 const pageWhentil = Whentil.When(
@@ -303,10 +298,8 @@ async function main() {
                   }
                 );
               }
-              //}
             } else {
               Session.GoBack();
-              //}
             }
           },
           false,

@@ -550,5 +550,3 @@ $translationTargetLang.listen((value) => {
   const prepared = prepareLyricsForDisplay(uri, base);
   publishModel(uri, prepared, true);
 });
-
-export default { afterLyricsApply, prepareLyricsForDisplay, resetTranslationForTrack };

@@ -1,6 +1,5 @@
 :root {
   --bg-rotation-degree: 258deg;
-  /* --sltoaster-bottom-padding: 104px; */
 }
 
 :root:has(#SpicyLyricsPage.Fullscreen) {
@@ -199,30 +198,6 @@ body.player-floating:has(.glassify-bg) #SpicyLyricsPage:not(.Fullscreen) .ViewCo
   scale: 1.15;
 }
 
-/* #SpicyLyricsPage:not(.Fullscreen, .NowBarSide__Right) .ViewControls:hover {
-  opacity: 1 !important;
-  left: var(--ControlsHoverOffset) !important;
-  scale: var(--ControlsHoverScale) !important;
-}
-
-#SpicyLyricsPage:not(.Fullscreen, .NowBarSide__Right):hover .ViewControls {
-  opacity: .6;
-  left: var(--PageHoverOffset);
-  scale: var(--PageHoverScale);
-}
-
-#SpicyLyricsPage:not(.Fullscreen):is(.NowBarSide__Right):is(.NowBarStatus__Open) .ViewControls:hover {
-  opacity: 1 !important;
-  right: var(--ControlsHoverOffset) !important;
-  scale: var(--ControlsHoverScale) !important;
-}
-
-#SpicyLyricsPage:not(.Fullscreen):is(.NowBarSide__Right):is(.NowBarStatus__Open):hover .ViewControls {
-  opacity: .6;
-  right: var(--PageHoverOffset);
-  scale: var(--PageHoverScale);
-} */
-
 #SpicyLyricsPage .ViewControls button {
   cursor: pointer;
 }
@@ -308,9 +283,7 @@ body:not(.SpicyLyrics_StaticBackground)
 body:not(.SpicyLyrics_StaticBackground)
   .Root__right-sidebar:has(.spicy-dynamic-bg):has(.main-nowPlayingView-section, canvas)
   button[type="button"] {
-  /* background-color: var(--background-tinted-base); */
   background-color: transparent;
-  /* color: hsla(0, 0%, 100%, 0.8); */
 }
 
 body:not(.SpicyLyrics_StaticBackground)
@@ -435,19 +408,10 @@ body:not(:has(.Root__main-view-overlay .BeautifulLyricsPage:is(.Fullscreen)))
   height: calc(var(--ViewControlSize) * 0.4);
   width: auto;
 }
-/* 
-#SpicyLyricsPage.Fullscreen .ViewControls svg {
-  height: calc(var(--ViewControlSize)* .4);
-} */
 
 sl-generic-modal.SpicyLyricsModal .sl-modal-overlay {
   z-index: 999;
 }
-
-/* .QdB2YtfEq0ks5O4QbtwX .WRGTOibB8qNEkgPNtMxq:has(#SpicyLyricsPage) *:not(#SpicyLyricsPage),
-.QdB2YtfEq0ks5O4QbtwX:has(#SpicyLyricsPage) .DJcMUKFwkFECf5ksmSfU {
-  display: none !important;
-} */
 
 #SpicyLyricsPage:not(.Lyrics_RomanizationAvailable) .ViewControls #RomanizationToggle,
 #SpicyLyricsPage:not(.SpicyRenderer) .ViewControls #RomanizationToggle {
@@ -769,26 +733,8 @@ sl-generic-modal.SpicyLyricsModal .sl-modal .sl-modal-container {
 }
 
 .sl-modal:has(.hidden-modal-header-style) .sl-modal-header {
-  /* border-bottom: none !important;
-  padding: 24px 46px 0px !important;
-  margin-bottom: -40px !important;
-  position: relative;
-  z-index: 104; */
-
   display: none;
 }
-
-/* .sl-modal:has(.slm.hidden-modal-header-style) .sl-modal-content {
-  position: relative;
-  z-index: 106;
-}
-
-.sl-modal:has(.slm.hidden-modal-header-style) .sl-modal-header h1 {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  height: 0px !important;
-  line-height: 0 !important;
-} */
 
 /* Modal enter/exit animation.
 
@@ -889,19 +835,6 @@ sl-generic-modal.SpicyLyricsModal .sl-modal-overlay-animated.Active .sl-modal-co
 #SpicyLyricsPage.episode-content-type .ContentBox .NowBar .Heart {
   opacity: 0 !important;
   pointer-events: none !important;
-}
-
-.SL_spinAnimation {
-  animation: SL_spin 0.8s linear infinite;
-}
-
-@keyframes SL_spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 .Root__right-sidebar aside {

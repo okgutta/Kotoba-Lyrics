@@ -1140,65 +1140,6 @@ export function Animate(position: number): void {
           line.HTMLElement.classList.add("pre-hidden");
         }
         resetSyllableLine(line);
-        /* const words = line.Syllables.Lead;
-              for (const word of words) {
-                  if (word.AnimatorStore && !word.Dot) {
-                       word.AnimatorStore.Scale.SetGoal(ScaleSpline.at(0));
-                       word.AnimatorStore.YOffset.SetGoal(YOffsetSpline.at(0));
-                       word.AnimatorStore.Glow.SetGoal(GlowSpline.at(0));
-                        const currentScale = word.AnimatorStore.Scale.Step(deltaTime);
-                        const currentYOffset = word.AnimatorStore.YOffset.Step(deltaTime);
-                        const currentGlow = word.AnimatorStore.Glow.Step(deltaTime);
-                        word.HTMLElement.style.transform = `translateY(calc(var(--DefaultLyricsSize) * ${currentYOffset}))`;
-                        word.HTMLElement.style.scale = `${currentScale}`;
-                        if (!word.LetterGroup) {
-                          word.HTMLElement.style.setProperty("--gradient-position", `-20%`);
-                          word.HTMLElement.style.setProperty("--text-shadow-blur-radius", `${4 + (2 * currentGlow * 1)}px`);
-                          word.HTMLElement.style.setProperty("--text-shadow-opacity", `${Math.min(currentGlow * 35, 100)}%`);
-                        }
-                  } else if (word.AnimatorStore && word.Dot && !word.LetterGroup) { // Handle dot reset
-                      word.AnimatorStore.Scale.SetGoal(DotScaleSpline.at(0));
-                      word.AnimatorStore.YOffset.SetGoal(DotYOffsetSpline.at(0));
-                      word.AnimatorStore.Glow.SetGoal(DotGlowSpline.at(0));
-                      word.AnimatorStore.Opacity.SetGoal(DotOpacitySpline.at(0));
-
-                      const currentScale = word.AnimatorStore.Scale.Step(deltaTime);
-                      const currentYOffset = word.AnimatorStore.YOffset.Step(deltaTime);
-                      const currentGlow = word.AnimatorStore.Glow.Step(deltaTime);
-                      const currentOpacity = word.AnimatorStore.Opacity.Step(deltaTime);
-
-                      word.HTMLElement.style.transform = `translateY(calc(var(--DefaultLyricsSize) * ${currentYOffset}))`;
-                      word.HTMLElement.style.scale = `${currentScale}`;
-                      word.HTMLElement.style.opacity = `${currentOpacity}`;
-                      word.HTMLElement.style.setProperty("--text-shadow-blur-radius", `${4 + (6 * currentGlow)}px`);
-                      word.HTMLElement.style.setProperty("--text-shadow-opacity", `${currentGlow * 90}%`);
-                  } else if (word.LetterGroup) {
-                     for (let k = 0; k < word.Letters.length; k++) {
-                      const letter = word.Letters[k];
-
-                      if (!letter.AnimatorStore) {
-                        letter.AnimatorStore = createLetterSprings();
-                        letter.AnimatorStore.Scale.SetGoal(ScaleSpline.at(0), true);
-                        letter.AnimatorStore.YOffset.SetGoal(YOffsetSpline.at(0), true);
-                        letter.AnimatorStore.Glow.SetGoal(GlowSpline.at(0), true);
-                      }
-
-                      letter.AnimatorStore.Scale.SetGoal(ScaleSpline.at(0));
-                      letter.AnimatorStore.YOffset.SetGoal(YOffsetSpline.at(0));
-                      letter.AnimatorStore.Glow.SetGoal(GlowSpline.at(0));
-
-                      const currentScale = letter.AnimatorStore.Scale.Step(deltaTime);
-                      const currentYOffset = letter.AnimatorStore.YOffset.Step(deltaTime);
-                      const currentGlow = letter.AnimatorStore.Glow.Step(deltaTime);
-
-                      letter.HTMLElement.style.setProperty("--gradient-position", `-20%`);
-                      letter.HTMLElement.style.transform = `translateY(calc(var(--DefaultLyricsSize) * ${currentYOffset * 2}))`;
-                      letter.HTMLElement.style.scale = `${currentScale}`;
-                      letter.HTMLElement.style.setProperty("--text-shadow-blur-radius", `${4 + (8 * currentGlow)}px`);
-                      letter.HTMLElement.style.setProperty("--text-shadow-opacity", `${currentGlow * LetterGlowMultiplier_Opacity}%`);
-                    }
-                  }
-              } */
       } else if (lineState === "Sung") {
         line.HTMLElement.classList.add("Sung");
         line.HTMLElement.classList.remove("Active", "NotSung");

@@ -226,7 +226,7 @@ html body.SpicyLyrics_NPVDynamicBackground {
     )::before {
     content: "";
     position: absolute;
-    /*  mask-image: linear-gradient(to bottom, black 90%, transparent 100%); */
+
     backdrop-filter: blur(6px);
     inset: 0;
     width: 100%;

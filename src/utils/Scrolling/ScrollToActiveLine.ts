@@ -388,33 +388,6 @@ export function ScrollToActiveLine(ScrollSimplebar: any) {
 
       const isSameLine = lastLine === LineElem;
 
-      /*
-                for (let i = 0; i < Lines.length; i++) {
-                    const line = Lines[i];
-                    if (line.HTMLElement) {
-                        const container = ScrollSimplebar?.getScrollElement() as HTMLElement;
-                        if (!container) return;
-                        const LineElem = line.HTMLElement;
-                        const lineRect = LineElem.getBoundingClientRect();
-                        const containerRect = container.getBoundingClientRect();
-                        const isLineInViewport = lineRect.top >= containerRect.top && lineRect.bottom <= containerRect.bottom;
-
-                        if (!isLineInViewport) {
-                            if (!LineElem.classList.contains("NotInViewport")) LineElem.classList.add("NotInViewport")
-                        } else {
-                            if (LineElem.classList.contains("NotInViewport")) LineElem.classList.remove("NotInViewport")
-                        }
-                    }
-                } */
-
-      // If this is the first line (no previous line), force scroll without checks
-      /* if (!shouldForceScroll) {
-                    isUserScrolling = false;
-                    lastLine = LineElem;
-                    ScrollIntoCenterViewCSS(container, LineElem, true);
-                    return;
-                } */
-
       // Only auto-scroll if BOTH conditions are met:
       // 1. User hasn't scrolled in the last second (cooldown passed)
       // 2. AND the active line is in viewport

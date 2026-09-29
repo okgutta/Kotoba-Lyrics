@@ -163,10 +163,8 @@ body:has(#SpicyLyricsPage.Fullscreen)
 }
 
 #SpicyLyricsPage .spicy-dynamic-bg.ColorBackground {
-  /* background-color: rgba(0, 0, 0, 0.25); */
-  /* background: linear-gradient(var(--ColorBackgroundRotation), var(--DesaturatedColor), var(--VibrantColor), var(--DarkVibrantColor), var(--BaseColor), var(--DesaturatedColor)); */
   background-color: rgba(var(--MinContrastColor));
-  /* animation: ColorBackgroundBackgroundRotation 20s linear infinite; */
+
   transition: background-color 1.5s;
   filter: none;
 }
