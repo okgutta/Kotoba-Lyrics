@@ -195,18 +195,24 @@ sl-generic-modal.SpicyLyricsModal
   margin-top: auto;
   padding-top: 20px;
 }
-.sl-sp-section--version .sl-sp-group {
-  background: transparent;
-  box-shadow: none;
-  border-radius: 0;
-  overflow: visible;
+.sl-sp-row.sl-sp-version-link {
+  width: auto;
+  min-height: 32px;
+  margin-inline: auto;
+  padding: 6px 10px;
+  gap: 8px;
+  border-radius: var(--radius-pill);
+  text-align: center;
+  color: var(--color-text-secondary);
 }
-.sl-sp-section--version .sl-sp-nav-row {
-  min-height: 36px;
-  padding: 6px 12px;
-}
-.sl-sp-section--version .sl-sp-nav-row:not(:disabled):hover {
+.sl-sp-row.sl-sp-version-link:not(:disabled):hover {
   background: transparent;
+  color: var(--color-text-primary);
+}
+.sl-sp-version-label {
+  font-size: var(--text-footnote-size) !important;
+  font-weight: var(--w-medium);
+  line-height: 1.35;
 }
 .sl-sp-page-title {
   margin: 0 0 14px;

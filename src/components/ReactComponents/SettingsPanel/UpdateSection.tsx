@@ -34,17 +34,28 @@ export default function UpdateSection({
           : state.phase === "downloading"
             ? "正在下载更新"
             : undefined;
+  const indicator = pending || Boolean(state.updateRequired) || Boolean(state.loaderUpdateRequired);
+  if (compact) {
+    return (
+      <button
+        type="button"
+        className="sl-sp-version-link sl-sp-nav-row"
+        onClick={onOpenDetail}
+        aria-label={`打开版本与更新，当前版本 ${value}`}
+      >
+        <span className="sl-sp-version-label">{value}</span>
+        {indicator && (
+          <span className="sl-sp-nav-dot" role="img" aria-label="有可用更新" title="有可用更新" />
+        )}
+      </button>
+    );
+  }
   return (
-    <Section className={compact ? "sl-sp-section--version" : undefined}>
+    <Section>
       <NavigationRow
-        label={compact ? value : "版本与更新"}
-        value={compact ? undefined : value}
-        indicator={
-          compact &&
-          (pending || Boolean(state.updateRequired) || Boolean(state.loaderUpdateRequired))
-        }
-        indicatorPlacement="label"
-        description={compact ? undefined : description}
+        label="版本与更新"
+        value={value}
+        description={description}
         onClick={onOpenDetail}
       />
     </Section>
