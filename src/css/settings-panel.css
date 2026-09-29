@@ -192,27 +192,34 @@ sl-generic-modal.SpicyLyricsModal
   min-height: 100%;
 }
 .sl-sp-page-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin-top: auto;
-  padding-top: 20px;
+  padding-top: 14px;
 }
 .sl-sp-row.sl-sp-version-link {
-  width: auto;
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
   min-height: 32px;
-  margin-inline: auto;
+  margin: 0;
   padding: 6px 10px;
   gap: 8px;
   border-radius: var(--radius-pill);
+  justify-content: center;
   text-align: center;
-  color: var(--color-text-secondary);
+  color: var(--color-text-tertiary);
 }
 .sl-sp-row.sl-sp-version-link:not(:disabled):hover {
   background: transparent;
   color: var(--color-text-primary);
 }
 .sl-sp-version-label {
-  font-size: var(--text-footnote-size) !important;
-  font-weight: var(--w-medium);
+  font-size: 12px !important;
+  font-weight: var(--w-semibold);
   line-height: 1.35;
+  letter-spacing: 0.01em;
 }
 .sl-sp-page-title {
   margin: 0 0 14px;
