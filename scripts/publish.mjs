@@ -148,7 +148,7 @@ if (!release)
       prerelease: false,
     },
   });
-// Users install one file. Internal update artifacts are served from updates only.
+// Users install one file. Internal update artifacts are served from the versions channel only.
 if (!existingInstaller) {
   const url = release.upload_url.replace(/\{.*$/, "") + "?name=kotoba-lyrics.js";
   const uploaded = await request(url, { method: "POST", body: installerBytes, binary: true });
@@ -228,6 +228,6 @@ await request(`/releases/${release.id}`, {
 
 // This project intentionally exposes only the current stable release. Keep
 // older release entries out of the public Releases page after the new one is
-// fully published; tags and the updates branch remain available as history.
+// fully published; tags and the versions channel remain available as history.
 if (process.env.KEEP_ONLY_LATEST_RELEASE === "true") await removeOlderReleases();
 console.log(`Published https://github.com/${repository}/releases/tag/${tag}`);
