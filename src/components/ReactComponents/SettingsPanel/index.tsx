@@ -67,6 +67,12 @@ function sectionFor(
         <>
           <ExperimentsSection query={query} sectionFilter={sectionFilter} />
           <DeveloperSection query={query} sectionFilter={sectionFilter} />
+          <UpdateSection
+            query={query}
+            sectionFilter={sectionFilter}
+            compact
+            onOpenDetail={() => openDetail("updates")}
+          />
         </>
       );
   }
@@ -214,6 +220,7 @@ export default function SettingsPanel({ initialPage }: SettingsPanelProps) {
                 <UpdateSection
                   query={query}
                   sectionFilter="All"
+                  compact
                   onOpenDetail={() => openDetail("updates")}
                 />
               </div>
@@ -230,14 +237,6 @@ export default function SettingsPanel({ initialPage }: SettingsPanelProps) {
             <div className="sl-sp-page">
               <div className="sl-sp-page-groups">
                 {sectionFor(activeCategory, query, activeCategory, openDetail)}
-              </div>
-              <div className="sl-sp-page-footer">
-                <UpdateSection
-                  query={query}
-                  sectionFilter="footer"
-                  compact
-                  onOpenDetail={() => openDetail("updates")}
-                />
               </div>
             </div>
           )}

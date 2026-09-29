@@ -14,11 +14,12 @@ export default function UpdateSection({
   compact?: boolean;
 }) {
   const state = useStore($updateState);
-  if (sectionFilter !== "All" && sectionFilter !== "footer") return null;
+  if (sectionFilter !== "All" && sectionFilter !== "advanced") return null;
   if (!matches(query, "版本与更新", "检查更新 自动下载 重新加载 强制更新 最低版本")) return null;
-  const pending = state.latestVersion && state.latestVersion !== state.currentVersion;
+  const pending = Boolean(state.latestVersion && state.latestVersion !== state.currentVersion);
+  const shortVersion = state.currentVersion.split(".").slice(0, 2).join(".");
   const value = compact
-    ? `v${state.currentVersion}`
+    ? `v${shortVersion}`
     : pending
       ? `v${state.currentVersion} → v${state.latestVersion}`
       : `v${state.currentVersion}`;
@@ -38,6 +39,10 @@ export default function UpdateSection({
       <NavigationRow
         label="版本与更新"
         value={value}
+        indicator={
+          compact &&
+          (pending || Boolean(state.updateRequired) || Boolean(state.loaderUpdateRequired))
+        }
         description={compact ? undefined : description}
         onClick={onOpenDetail}
       />

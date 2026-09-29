@@ -211,6 +211,7 @@ export function NavigationRow({
   label,
   description,
   value,
+  indicator,
   valueState,
   onClick,
   disabled,
@@ -220,6 +221,8 @@ export function NavigationRow({
   description?: string;
   /** 行右侧显示的当前值（如当前语言、Token 是否已配置） */
   value?: string;
+  /** 在当前值旁显示状态圆点。 */
+  indicator?: boolean;
   /** ok = 已配置（蓝），unset = 未配置（弱灰）；缺省 = 中性灰 */
   valueState?: "ok" | "unset";
   onClick: () => void;
@@ -259,6 +262,9 @@ export function NavigationRow({
             >
               {value}
             </span>
+          )}
+          {indicator && (
+            <span className="sl-sp-nav-dot" role="img" aria-label="有可用更新" title="有可用更新" />
           )}
           <svg
             width="12"

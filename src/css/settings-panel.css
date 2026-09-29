@@ -186,11 +186,6 @@ sl-generic-modal.SpicyLyricsModal
   flex-direction: column;
   gap: 20px;
 }
-.sl-sp-page-footer {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid var(--slsp-hairline);
-}
 .sl-sp-page-title {
   margin: 0 0 14px;
   font-size: var(--text-body-size) !important;
@@ -598,6 +593,15 @@ sl-generic-modal.SpicyLyricsModal
   gap: 5px;
   flex-shrink: 0;
   color: var(--color-text-tertiary);
+
+  .sl-sp-nav-dot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 6px;
+    border-radius: 50%;
+    background: var(--slsp-accent-text);
+    box-shadow: 0 0 0 3px var(--slsp-accent-tint);
+  }
 
   .sl-sp-nav-value-text {
     font-size: var(--text-body-size) !important;
