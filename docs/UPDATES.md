@@ -46,22 +46,22 @@ v1.2.0 及以前没有加载器，需要手动覆盖安装一次。将来的更�
 
 同一版本已发布时，后续提交只检查构建，不重复发布或覆盖产物。开发中提交不会自动变成面向用户的新版本；需要发布时提升版本号。
 
-工作流使用 GitHub 自动提供的仓库令牌，无需提交个人 Token。`main` 保留源码，`updates` 分支仅存放按版本划分的分发文件，不混入源码目录。
+工作流使用 GitHub 自动提供的仓库令牌，无需提交个人 Token。仓库只有一个 `main` 分支：源码在仓库根目录，按版本划分的分发文件放在 `versions/` 下，两者互不影响。发布任务会用该令牌把分发文件提交回 `main`；由 `GITHUB_TOKEN` 触发的推送不会再次触发工作流，因此不会递归发布。
 
 ## 产物和顺序
 
-| 文件                     | 分发位置                             | 用途                                         |
-| ------------------------ | ------------------------------------ | -------------------------------------------- |
-| `kotoba-lyrics.js`       | Release 唯一安装附件                 | 首次安装或手动更新的加载器，含离线兜底版本   |
-| `lyrivamusic-runtime.js` | `updates/versions/v<版本>/`          | 自动更新下载的完整扩展，含样式               |
-| `manifest.json`          | `updates/versions/v<版本>/`          | 版本、加载器协议、运行包地址、大小和 SHA-256 |
+| 文件                     | 分发位置                           | 用途                                         |
+| ------------------------ | ---------------------------------- | -------------------------------------------- |
+| `kotoba-lyrics.js`       | Release 唯一安装附件               | 首次安装或手动更新的加载器，含离线兜底版本   |
+| `lyrivamusic-runtime.js` | `main` 分支 `versions/v<版本>/`    | 自动更新下载的完整扩展，含样式               |
+| `manifest.json`          | `main` 分支 `versions/v<版本>/`    | 版本、加载器协议、运行包地址、大小和 SHA-256 |
 | `SHA256SUMS.txt`         | 本地或 CI 的 `dist/`，不上传 Release | 构建产物校验                                 |
 
 用户安装文件固定为 `kotoba-lyrics.js`。自动更新协议中的 `lyrivamusic-runtime.js` 是内部兼容路径，保留它以便已安装的加载器继续校验和下载；它不会作为商店安装包显示。
 
-新版本 Release 只上传 `kotoba-lyrics.js`；运行包和清单在 `updates` 分支分发。当前分发路径为 `https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/updates/versions/v<版本>/manifest.json`，以及同目录下的 `lyrivamusic-runtime.js`。仓库更名前的安装包仍内置旧地址，需要手动覆盖安装一次以切换更新渠道。
+新版本 Release 只上传 `kotoba-lyrics.js`；运行包和清单在默认分支的 `versions/` 目录分发。当前分发路径为 `https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/main/versions/v<版本>/manifest.json`，以及同目录下的 `lyrivamusic-runtime.js`。目录按版本划分，已发布的版本目录不会改动，发布脚本会拒绝覆盖同名版本的产物。v1.6.0 之前的安装包内置旧的 `updates` 分支地址，需要手动覆盖安装一次以切换更新渠道。
 
-发布任务先上传并校验 Release 草稿中的 `kotoba-lyrics.js`，再在 `updates` 分支的一次提交中写入运行包与清单；验证分发地址后才公开 Release。重试旧流程创建的草稿时，会清理其中的运行包、清单和校验文件附件。已公开的 Release 和分发文件不会被覆盖，历史版本附件保持原样。
+发布任务先上传并校验 Release 草稿中的 `kotoba-lyrics.js`，再向 `main` 提交一次写入运行包与清单；验证分发地址后才公开 Release。这次提交只包含 `versions/` 下的文件，不修改源码，推送前请确保本地 `main` 与远程一致。重试旧流程创建的草稿时，会清理其中的运行包、清单和校验文件附件。已公开的 Release 和分发文件不会被覆盖，历史版本附件保持原样。
 
 客户端只接受本仓库最新正式 Release，拒绝预发布、回退版本、其他仓库地址、错误大小或摘要的包。运行包保存在 Spotify Origin 下的 IndexedDB，歌词缓存清理不会删除更新缓存。凭据、账号和歌词数据不会随更新检查发送。
 

@@ -15,7 +15,7 @@ const manifest = JSON.stringify({
   version: "1.3.0",
   loaderVersion: 1,
   runtime: {
-    url: "https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/updates/versions/v1.3.0/lyrivamusic-runtime.js",
+    url: "https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/main/versions/v1.3.0/lyrivamusic-runtime.js",
     sha256: hash(runtime),
     size: Buffer.byteLength(runtime),
   },
@@ -82,7 +82,10 @@ globalThis.fetch = async (input, init = {}) => {
   if (path === "/git/ref/tags/v1.3.0") return json(null, 404);
   if (path === "/git/refs" && method === "POST") {
     const data = JSON.parse(init.body);
-    if (data.ref === "refs/heads/updates") channelPublished = true;
+    if (data.ref.startsWith("refs/heads/")) {
+      assert.equal(data.ref, "refs/heads/main", "the update channel stays on the default branch");
+      channelPublished = true;
+    }
     return json({});
   }
   if (path === "/releases" && method === "POST") return json(draft);
@@ -107,9 +110,13 @@ globalThis.fetch = async (input, init = {}) => {
     removedReleases.push(Number(path.split("/").pop()));
     return new Response(null, { status: 204 });
   }
-  if (path === "/git/ref/heads/updates") return mode === "immutable" ? json({ object: { sha: "parent" } }) : json(null, 404);
+  if (path === "/git/ref/heads/main") return ["immutable", "existing-branch"].includes(mode) ? json({ object: { sha: "parent" } }) : json(null, 404);
+  if (path === "/git/refs/heads/main" && method === "PATCH") {
+    channelPublished = true;
+    return json({});
+  }
   if (path === "/git/commits/parent") return json({ sha: "parent", tree: { sha: "old-tree" } });
-  if (path.startsWith("/contents/")) return json({ sha: "original-blob" });
+  if (path.startsWith("/contents/")) return json({ sha: mode === "existing-branch" ? "new-blob" : "original-blob" });
   if (path === "/git/blobs") return json({ sha: "new-blob" });
   if (path === "/git/trees") {
     assert.equal(uploads, ["retry", "retry-legacy"].includes(mode) ? 0 : 1, "verify the single installer before channel publication");
@@ -135,6 +142,7 @@ globalThis.fetch = async (input, init = {}) => {
   await writeFile(preloadPath, preload);
   for (const mode of [
     "success",
+    "existing-branch",
     "retry",
     "retry-legacy",
     "installer-mismatch",
@@ -175,8 +183,13 @@ globalThis.fetch = async (input, init = {}) => {
     const requests = await readFile(join(directory, "requests.log"), "utf8");
     assert.equal(
       requests.includes("PATCH /releases/1"),
-      ["success", "retry", "retry-legacy", "cleanup"].includes(mode),
+      ["success", "existing-branch", "retry", "retry-legacy", "cleanup"].includes(mode),
       mode
+    );
+    assert.equal(
+      requests.includes("PATCH /git/refs/heads/main"),
+      mode === "existing-branch",
+      `${mode}: the update channel commit lands on the default branch`
     );
     if (["published", "stale"].includes(mode)) assert.doesNotMatch(requests, /POST|PATCH|DELETE/);
     if (mode === "retry") assert.doesNotMatch(requests, /assets/);

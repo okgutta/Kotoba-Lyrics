@@ -36,7 +36,7 @@ https://github.com/okgutta/Kotoba-Lyrics/releases/latest/download/kotoba-lyrics.
 
 根清单的 `preview` 使用 `docs/marketplace.png`，`readme` 使用 `README.md`。更新截图时应展示真实的歌词主体和 Spotify 场景，不包含账号、私密播放列表或密钥。
 
-根 `manifest.json` 与构建生成的 `dist/manifest.json` 用途不同：后者及 `updates` 分支中的清单属于扩展自身的自动更新协议，包含运行包地址、大小和校验信息，不可互相替换。
+根 `manifest.json` 与构建生成的 `dist/manifest.json` 用途不同：后者及 `main` 分支 `versions/` 目录中的清单属于扩展自身的自动更新协议，包含运行包地址、大小和校验信息，不可互相替换。
 
 ## 构建与发布
 

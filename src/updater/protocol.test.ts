@@ -42,7 +42,7 @@ const manifest = {
   version: "1.3.0",
   loaderVersion: 1,
   runtime: {
-    url: "https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/updates/versions/v1.3.0/lyrivamusic-runtime.js",
+    url: "https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/main/versions/v1.3.0/lyrivamusic-runtime.js",
     sha256: await sha256(bytes),
     size: bytes.length,
   },

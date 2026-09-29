@@ -20,7 +20,7 @@ async function runtime(version: string, code = `version ${version}`): Promise<Ca
 }
 const fallback = { fallbackCode: "embedded", fallbackVersion: "1.2.0", loaderVersion: 1 };
 const next = await runtime("1.3.0");
-const root = "https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/updates/versions/v1.3.0";
+const root = "https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/main/versions/v1.3.0";
 let corrupt = false;
 let requiredLoader = 1;
 let fetchCount = 0;

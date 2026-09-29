@@ -1,7 +1,9 @@
 export const LATEST_RELEASE_URL =
   "https://api.github.com/repos/okgutta/Kotoba-Lyrics/releases/latest";
 export const MAX_RUNTIME_BYTES = 12 * 1024 * 1024;
-const RAW_ROOT = "https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/updates/versions";
+// Artifacts live on the default branch so the repository keeps a single branch.
+// Paths are version-scoped, which keeps every published manifest immutable.
+const RAW_ROOT = "https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/main/versions";
 const RELEASE_ROOT = "https://github.com/okgutta/Kotoba-Lyrics/releases/tag";
 const VERSION = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 

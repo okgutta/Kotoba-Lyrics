@@ -110,7 +110,7 @@ if (
   manifest.runtime.sha256 !== hash(runtimeBytes) ||
   manifest.runtime.size !== runtimeBytes.length ||
   manifest.runtime.url !==
-    `https://raw.githubusercontent.com/${repository}/updates/versions/${tag}/lyrivamusic-runtime.js`
+    `https://raw.githubusercontent.com/${repository}/main/versions/${tag}/lyrivamusic-runtime.js`
 ) {
   throw new Error("Release build and manifest differ.");
 }
@@ -170,9 +170,10 @@ for (const asset of release.assets) {
   }
 }
 
-// Runtime and manifest enter the distribution branch in one Git commit.
-// The Release becomes visible only after both files are available.
-const channel = await request("/git/ref/heads/updates", { optional: true });
+// Runtime and manifest enter the default branch in one Git commit, so the
+// repository keeps a single branch. The Release becomes visible only after
+// both files are available.
+const channel = await request("/git/ref/heads/main", { optional: true });
 const parent = channel ? await request(`/git/commits/${channel.object.sha}`) : null;
 const tree = [];
 for (const [name, bytes] of [
@@ -180,9 +181,7 @@ for (const [name, bytes] of [
   ["manifest.json", manifestBytes],
 ]) {
   const path = `versions/${tag}/${name}`;
-  const existing = channel
-    ? await request(`/contents/${path}?ref=updates`, { optional: true })
-    : null;
+  const existing = channel ? await request(`/contents/${path}?ref=main`, { optional: true }) : null;
   const blob = await request("/git/blobs", {
     method: "POST",
     body: { content: bytes.toString("base64"), encoding: "base64" },
@@ -200,21 +199,21 @@ const commit = await request("/git/commits", {
   body: { message: `Publish ${tag}`, tree: newTree.sha, parents: parent ? [parent.sha] : [] },
 });
 if (channel) {
-  await request("/git/refs/heads/updates", {
+  await request("/git/refs/heads/main", {
     method: "PATCH",
     body: { sha: commit.sha, force: false },
   });
 } else {
   await request("/git/refs", {
     method: "POST",
-    body: { ref: "refs/heads/updates", sha: commit.sha },
+    body: { ref: "refs/heads/main", sha: commit.sha },
   });
 }
 for (const [name, bytes] of [
   ["manifest.json", manifestBytes],
   ["lyrivamusic-runtime.js", runtimeBytes],
 ]) {
-  const url = `https://raw.githubusercontent.com/${repository}/updates/versions/${tag}/${name}?release=${commit.sha}`;
+  const url = `https://raw.githubusercontent.com/${repository}/main/versions/${tag}/${name}?release=${commit.sha}`;
   const response = await fetch(url, { signal: AbortSignal.timeout(60000), cache: "no-store" });
   if (!response.ok || hash(Buffer.from(await response.arrayBuffer())) !== hash(bytes)) {
     throw new Error(
