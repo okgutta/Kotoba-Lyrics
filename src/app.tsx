@@ -114,7 +114,7 @@ async function main() {
   const skeletonStyle = document.createElement("style");
   skeletonStyle.innerHTML = `
         /* This style is here to prevent the @keyframes removal in the CSS. I still don't know why that's happening. */
-        /* This is a part of lyrivaMusic */
+        /* This is a part of Kotoba Lyrics */
         @keyframes skeleton {
             to {
                 background-position-x: 0;
@@ -283,7 +283,7 @@ async function main() {
       {
         Registered: false,
         Button: new SpotifyPlayer.Playbar.Button(
-          "lyrivaMusic",
+          "Kotoba Lyrics",
           Icons.LyricsPage,
           (self) => {
             if (!self.active) {
@@ -867,7 +867,7 @@ async function main() {
     }
 
     if (button) {
-      button.Button.tippy.setContent("lyrivaMusic");
+      button.Button.tippy.setContent("Kotoba Lyrics");
     }
 
     {
@@ -926,7 +926,7 @@ async function main() {
               }
             );
           } catch (err) {
-            console.error("lyrivaMusic: couldn't listen for volume changes", err);
+            console.error("Kotoba Lyrics: couldn't listen for volume changes", err);
           }
         }
       );
@@ -1092,7 +1092,7 @@ async function main() {
 function registerSettingsMenu() {
   ensureSpicetifyMenuItem();
   const settingsMenuItem = new Spicetify.Menu.Item(
-    "lyrivaMusic 设置",
+    "Kotoba Lyrics 设置",
     false,
     () => {
       openSettingsPanel();
@@ -1137,7 +1137,7 @@ $updateRequired.listen(() => {
       if (Spicetify.Platform.History.location.pathname === "/SpicyLyrics") await PageView.Open();
       RequestNPVCardEvaluate();
     })
-    .catch((error) => console.error("[lyrivaMusic] update gate transition failed", error));
+    .catch((error) => console.error("[Kotoba Lyrics] update gate transition failed", error));
 });
 window.__LYRIVA_UPDATER__?.markHealthy(ProjectVersion);
 initializeUpdates();

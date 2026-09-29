@@ -47,7 +47,7 @@ await build({
   stdin: {
     contents: `import { startUpdater } from "./src/updater/core.ts";
       startUpdater({ fallbackCode: ${JSON.stringify(runtime)}, fallbackVersion: ${JSON.stringify(version)}, loaderVersion: ${LOADER_VERSION} })
-        .catch(error => console.error("[lyrivaMusic updater]", error));`,
+        .catch(error => console.error("[Kotoba Lyrics updater]", error));`,
     resolveDir: root,
   },
   bundle: true,
@@ -64,7 +64,7 @@ const manifest = {
   loaderVersion: LOADER_VERSION,
   ...updatePolicy,
   runtime: {
-    url: `https://raw.githubusercontent.com/okgutta/lyrivaMusic/updates/versions/v${version}/lyrivamusic-runtime.js`,
+    url: `https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/updates/versions/v${version}/lyrivamusic-runtime.js`,
     sha256: hash(runtime),
     size: Buffer.byteLength(runtime),
   },
@@ -75,7 +75,7 @@ const checksums = await Promise.all(
   assets.map(async (name) => `${hash(await readFile(join("dist", name)))}  ${name}`)
 );
 await writeFile("dist/SHA256SUMS.txt", checksums.join("\n") + "\n");
-console.log(`Built lyrivaMusic ${version}: installer, runtime, update manifest and checksums.`);
+console.log(`Built Kotoba Lyrics ${version}: installer, runtime, update manifest and checksums.`);
 
 if (!args.includes("--no-copy") && !process.env.CI && process.env.SPICETIFY_SKIP !== "true") {
   const executable = process.platform === "win32" ? "spicetify.exe" : "spicetify";

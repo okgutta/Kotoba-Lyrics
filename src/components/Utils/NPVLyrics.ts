@@ -367,7 +367,7 @@ function renderCardShell(npv: HTMLElement): boolean {
       // The card guard inside PageView.Open hands the pipeline over.
       Session.Navigate({ pathname: "/SpicyLyrics" });
     });
-    setTooltip(expand, "打开 lyrivaMusic", "expand-tip");
+    setTooltip(expand, "打开 Kotoba Lyrics", "expand-tip");
   }
 
   const maximize = cardEl.querySelector<HTMLElement>("#NPVCardMaximize");

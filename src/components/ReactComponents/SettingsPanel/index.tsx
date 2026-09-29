@@ -8,6 +8,8 @@ import LyricsSection from "./LyricsSection.tsx";
 import PlaybackSection from "./PlaybackSection.tsx";
 import ServicesSection from "./ServicesSection.tsx";
 import UpdateSection from "./UpdateSection.tsx";
+import UpdateDetails from "./UpdateDetails.tsx";
+import { ProjectName } from "../../../../project/config.ts";
 import {
   DetailCustomConfig,
   DetailDeepSeekKey,
@@ -34,7 +36,8 @@ type DetailId =
   | "deepseek-key"
   | "openai-key"
   | "custom-config"
-  | "translation-model";
+  | "translation-model"
+  | "updates";
 
 type OpenDetail = (id: DetailId) => void;
 
@@ -62,7 +65,11 @@ function sectionFor(
     case "advanced":
       return (
         <>
-          <UpdateSection query={query} sectionFilter={sectionFilter} />
+          <UpdateSection
+            query={query}
+            sectionFilter={sectionFilter}
+            onOpenDetail={() => openDetail("updates")}
+          />
           <ExperimentsSection query={query} sectionFilter={sectionFilter} />
           <DeveloperSection query={query} sectionFilter={sectionFilter} />
         </>
@@ -72,6 +79,8 @@ function sectionFor(
 
 function DetailPage({ id, onBack }: { id: DetailId; onBack: () => void }) {
   switch (id) {
+    case "updates":
+      return <UpdateDetails onBack={onBack} />;
     case "genius-token":
       return <DetailGeniusToken onBack={onBack} />;
     case "translation-lang":
@@ -87,10 +96,15 @@ function DetailPage({ id, onBack }: { id: DetailId; onBack: () => void }) {
   }
 }
 
-export default function SettingsPanel() {
+export interface SettingsPanelProps {
+  initialPage?: "updates";
+}
+export default function SettingsPanel({ initialPage }: SettingsPanelProps) {
   const [query, setQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<SectionValue>("lyrics-display");
-  const [detail, setDetail] = useState<DetailId | null>(null);
+  const [activeCategory, setActiveCategory] = useState<SectionValue>(
+    initialPage === "updates" ? "advanced" : "lyrics-display"
+  );
+  const [detail, setDetail] = useState<DetailId | null>(initialPage ?? null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [searchEmpty, setSearchEmpty] = useState(false);
   const searching = query.trim().length > 0;
@@ -137,7 +151,9 @@ export default function SettingsPanel() {
   return (
     <div className="slm w-40 sl-sp-root hidden-modal-header-style">
       <header className="sl-sp-header">
-        <h1 className="sl-sp-title">设置</h1>
+        <h1 className="sl-sp-title" aria-label={ProjectName + " 设置"}>
+          {ProjectName}
+        </h1>
         <SearchBar
           value={query}
           onChange={(value) => {

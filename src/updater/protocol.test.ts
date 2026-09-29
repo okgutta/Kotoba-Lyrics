@@ -35,14 +35,14 @@ const release = parseRelease({
   body: "notes",
   html_url: "https://unrelated.invalid",
 })!;
-assert.equal(release.url, "https://github.com/okgutta/lyrivaMusic/releases/tag/v1.3.0");
+assert.equal(release.url, "https://github.com/okgutta/Kotoba-Lyrics/releases/tag/v1.3.0");
 const bytes = new TextEncoder().encode("globalThis.fixture = '字';");
 const manifest = {
   schema: 1,
   version: "1.3.0",
   loaderVersion: 1,
   runtime: {
-    url: "https://raw.githubusercontent.com/okgutta/lyrivaMusic/updates/versions/v1.3.0/lyrivamusic-runtime.js",
+    url: "https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/updates/versions/v1.3.0/lyrivamusic-runtime.js",
     sha256: await sha256(bytes),
     size: bytes.length,
   },

@@ -36,7 +36,11 @@ export default function BackgroundSection({ query, sectionFilter }: Props) {
   );
   const blurApplies = staticBackgroundMode !== "off" && staticBackgroundMode !== "color";
   const r3 = blurApplies && matches(query, "背景模糊", "柔化静态背景图片。");
-  const r4 = matches(query, "使用系统字体", "不加载 lyrivaMusic 内置字体，跟随 Spotify 当前字体。");
+  const r4 = matches(
+    query,
+    "使用系统字体",
+    "不加载 Kotoba Lyrics 内置字体，跟随 Spotify 当前字体。"
+  );
 
   if (!r1 && !r2 && !r3 && !r4) return null;
 

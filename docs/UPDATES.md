@@ -5,7 +5,7 @@
 ## 用户更新流程
 
 1. Spotify 启动后及运行期间每 30 分钟检查本仓库最新正式 Release。
-2. 发现普通更新后在后台下载并校验运行包，下载完成才弹窗。正在编辑其他设置时，等关闭设置后再显示。每个版本只自动提醒一次，记录在本机，重启后也不会重复弹窗。
+2. 发现普通更新后在后台下载并校验运行包，准备好后显示右下角提醒。点击「查看详情」打开设置中的「版本与更新」页，与其他设置共用窗口、分组列表和返回导航。通知不会覆盖未保存的设置；每个版本只自动提醒一次，重启后也保留提醒记录。
 3. 下载完成后点「立即重新加载」启用，或选择「下次启动生效」。关闭弹窗同样保留已下载的更新。当前会话不会执行两份扩展，后台不会自行重新加载 Spotify。
 4. 网络或校验失败保留旧版。新包只有完成启动后才替代已知可用版本；启动失败则下次回退。
 5. 自动检查失败不弹错误窗；可从设置的「版本与更新」查看错误、重试或前往发布页手动安装。需要升级加载器时无需等待运行包下载，直接提示手动更新。
@@ -57,7 +57,7 @@ v1.2.0 及以前没有加载器，需要手动覆盖安装一次。将来的更�
 | `manifest.json`          | `updates/versions/v<版本>/`          | 版本、加载器协议、运行包地址、大小和 SHA-256 |
 | `SHA256SUMS.txt`         | 本地或 CI 的 `dist/`，不上传 Release | 构建产物校验                                 |
 
-新版本 Release 只上传 `lyrivamusic.js`；运行包和清单仍只在 `updates` 分支分发。加载器使用的地址保持不变：`https://raw.githubusercontent.com/okgutta/lyrivaMusic/updates/versions/v<版本>/manifest.json`，以及同目录下的 `lyrivamusic-runtime.js`。
+新版本 Release 只上传 `lyrivamusic.js`；运行包和清单在 `updates` 分支分发。当前分发路径为 `https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/updates/versions/v<版本>/manifest.json`，以及同目录下的 `lyrivamusic-runtime.js`。仓库更名前的安装包仍内置旧地址，需要手动覆盖安装一次以切换更新渠道。
 
 发布任务先上传并校验 Release 草稿中的 `lyrivamusic.js`，再在 `updates` 分支的一次提交中写入运行包与清单；验证分发地址后才公开 Release。重试旧流程创建的草稿时，会清理其中的运行包、清单和校验文件附件。已公开的 Release 和分发文件不会被覆盖，历史版本附件保持原样。
 

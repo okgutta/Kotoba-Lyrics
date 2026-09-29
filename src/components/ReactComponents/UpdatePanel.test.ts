@@ -20,6 +20,11 @@ function render(state: UpdateState) {
 const ready: UpdateState = { phase: "ready", currentVersion: "1.0.0", latestVersion: "2.0.0" };
 assert.match(render(ready), /下次启动生效/);
 assert.match(render(ready), /立即重新加载/);
+assert.match(render(ready), /sl-sp-detail sl-sp-update-page/);
+assert.match(render(ready), /Kotoba Lyrics/);
+assert.match(render(ready), /aria-label="返回设置"/);
+assert.doesNotMatch(render(ready), /sl-notice|lyrivaMusic/);
+assert.match(render({ ...ready, notes: "更新说明" }), /本次更新/);
 const required = {
   ...ready,
   minimumSupportedVersion: "2.0.0",

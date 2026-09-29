@@ -105,7 +105,7 @@ export async function startUpdater(
       try {
         listener({ ...state });
       } catch (error) {
-        console.error("[lyrivaMusic updater] listener failed", error);
+        console.error("[Kotoba Lyrics updater] listener failed", error);
       }
     }
   }
@@ -329,7 +329,7 @@ export async function startUpdater(
     bootFailed = true;
     badVersion = selected?.version;
     failed(new Error("新版本启动失败，将在下次启动时恢复可用版本"));
-    console.error("[lyrivaMusic updater] runtime startup failed", error);
+    console.error("[Kotoba Lyrics updater] runtime startup failed", error);
   }
   return bridge;
 }

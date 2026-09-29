@@ -177,7 +177,7 @@ export function showMigrationModal() {
 
           <h2 className="uc-title">需要迁移设置</h2>
           <p className="uc-subtitle udc-desc">
-            lyrivaMusic 更新了存储格式。需要先迁移你的现有设置才能继续，此操作只会执行一次。
+            Kotoba Lyrics 更新了存储格式。需要先迁移你的现有设置才能继续，此操作只会执行一次。
           </p>
 
           <div className="uc-divider" />
@@ -239,7 +239,7 @@ export function showMigrationModal() {
   renderMigrate();
 
   PopupModal.display({
-    title: "lyrivaMusic",
+    title: "Kotoba Lyrics",
     content: div,
     onClose: () => reactRoot.unmount(),
     closeBtn: false,

@@ -1,4 +1,82 @@
-/* A single quiet sheet, sharing the lyric/settings material. */
+/* Shared settings rows and detail frame own the update page appearance. */
+.sl-sp-update-page {
+  min-height: 0;
+}
+.sl-sp-update-version {
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.sl-sp-update-status {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+}
+.sl-sp-update-status p {
+  margin: 0;
+}
+.sl-sp-update-status .sl-sp-update-error {
+  color: var(--color-status-danger);
+}
+.sl-sp-update-required {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--slsp-hairline);
+  font-size: var(--text-footnote-size);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+.sl-sp-update-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px 16px;
+  font-size: var(--text-footnote-size);
+  font-variant-numeric: tabular-nums;
+}
+.sl-sp-update-progress progress {
+  width: 100%;
+  min-width: 0;
+  height: 5px;
+  border: none;
+  appearance: none;
+  accent-color: var(--accent);
+}
+.sl-sp-update-progress progress::-webkit-progress-bar {
+  background: var(--slsp-hairline);
+  border-radius: var(--radius-pill);
+}
+.sl-sp-update-progress progress::-webkit-progress-value {
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+}
+.sl-sp-update-notes {
+  padding: 12px 16px;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-size);
+}
+.sl-sp-update-link {
+  color: var(--color-text-secondary);
+  font-size: var(--text-footnote-size);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.sl-sp-update-link:hover {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+}
+.sl-sp-update-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.sl-sp-update-page a.sl-sp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+/* The standalone disabled-lyrics surface reuses the same neutral tokens. */
 sl-generic-modal.SpicyLyricsModal .slmodal-lyrivaUpdate > div {
   width: min(calc(100vw - 32px), 540px);
   max-height: calc(100dvh - 48px);

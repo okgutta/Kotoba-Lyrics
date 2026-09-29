@@ -15,7 +15,7 @@ const manifest = JSON.stringify({
   version: "1.3.0",
   loaderVersion: 1,
   runtime: {
-    url: "https://raw.githubusercontent.com/okgutta/lyrivaMusic/updates/versions/v1.3.0/lyrivamusic-runtime.js",
+    url: "https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/updates/versions/v1.3.0/lyrivamusic-runtime.js",
     sha256: hash(runtime),
     size: Buffer.byteLength(runtime),
   },
@@ -55,10 +55,10 @@ const pagedReleases = [
     { id: 205, tag_name: "v1.1.0", draft: false, prerelease: true },
   ],
 ];
-const draft = { id: 1, tag_name: "v1.3.0", draft: true, assets: [], upload_url: "https://uploads.github.com/repos/okgutta/lyrivaMusic/releases/1/assets{?name}" };
+const draft = { id: 1, tag_name: "v1.3.0", draft: true, assets: [], upload_url: "https://uploads.github.com/repos/okgutta/Kotoba-Lyrics/releases/1/assets{?name}" };
 globalThis.fetch = async (input, init = {}) => {
   const url = new URL(input);
-  const path = url.pathname.replace("/repos/okgutta/lyrivaMusic", "");
+  const path = url.pathname.replace("/repos/okgutta/Kotoba-Lyrics", "");
   const method = init.method || "GET";
   appendFileSync("requests.log", method + " " + path + url.search + "\\n");
   const json = (value, status = 200) => new Response(JSON.stringify(value), { status });
@@ -158,7 +158,7 @@ globalThis.fetch = async (input, init = {}) => {
           ...process.env,
           GITHUB_TOKEN: "fixture-token",
           GITHUB_SHA: "a".repeat(40),
-          GITHUB_REPOSITORY: "okgutta/lyrivaMusic",
+          GITHUB_REPOSITORY: "okgutta/Kotoba-Lyrics",
           RELEASE_TEST_MODE: mode,
           KEEP_ONLY_LATEST_RELEASE: ["cleanup", "published-cleanup", "published-stale"].includes(
             mode

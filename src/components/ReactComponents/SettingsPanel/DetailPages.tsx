@@ -20,46 +20,7 @@ import { normalizeApiBaseUrl } from "../../../utils/Lyrics/Translate/url.ts";
 import { notify } from "../../../utils/notify.ts";
 import { Row, Select, Section, Input } from "./components.tsx";
 
-/** 二级页外壳：返回按钮 + 内容滚动 */
-function DetailShell({
-  title,
-  onBack,
-  children,
-  actions,
-}: {
-  title: string;
-  onBack: () => void;
-  children: React.ReactNode;
-  actions?: React.ReactNode;
-}) {
-  return (
-    <div className="sl-sp-detail">
-      <div className="sl-sp-detail-header">
-        <button type="button" className="sl-sp-back-btn" onClick={onBack} aria-label="返回设置">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M8.5 2.5L4 7l4.5 4.5"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          设置
-        </button>
-      </div>
-      <h2 className="sl-sp-detail-title">{title}</h2>
-      <div className="sl-sp-detail-body">{children}</div>
-      {actions && <div className="sl-sp-detail-footer">{actions}</div>}
-    </div>
-  );
-}
+import DetailShell from "./DetailShell.tsx";
 
 function DetailActionBar({
   dirty,

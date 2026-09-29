@@ -1,10 +1,10 @@
 {
-  "name": "lyrivamusic",
+  "name": "kotoba-lyrics",
   "version": "1.6.0",
   "description": "为 Spotify 提供逐字同步、翻译和沉浸式歌词显示的 Spicetify 扩展。",
-  "homepage": "https://github.com/okgutta/lyrivaMusic#readme",
+  "homepage": "https://github.com/okgutta/Kotoba-Lyrics#readme",
   "bugs": {
-    "url": "https://github.com/okgutta/lyrivaMusic/issues"
+    "url": "https://github.com/okgutta/Kotoba-Lyrics/issues"
   },
   "license": "AGPL-3.0-or-later",
   "author": "okgutta",
@@ -16,7 +16,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/okgutta/lyrivaMusic.git"
+    "url": "git+https://github.com/okgutta/Kotoba-Lyrics.git"
   },
   "type": "module",
   "scripts": {

@@ -5,10 +5,13 @@ import { createContext, runInContext } from "node:vm";
 import { resolve } from "node:path";
 import type * as Esbuild from "esbuild";
 import type { UpdateState } from "../updater/contracts.ts";
-
 const { build } = createRequire(import.meta.url)("esbuild") as typeof Esbuild;
 const bundle = await build({
-  entryPoints: [resolve("src/utils/updates.tsx")],
+  stdin: {
+    resolveDir: resolve("."),
+    contents:
+      'export * from "./src/utils/updates.tsx"; export { retainUpdatePanel } from "./src/updater/runtimeState.ts";',
+  },
   bundle: true,
   write: false,
   platform: "browser",
@@ -17,59 +20,63 @@ const bundle = await build({
   define: { "process.env.NODE_ENV": '"production"' },
   plugins: [
     {
-      name: "update-ui-host",
+      name: "update-settings-host",
       setup(builder) {
-        builder.onResolve({ filter: /^(react-dom([/]client)?|@nanostores[/]react)$/ }, (args) => ({
+        builder.onResolve({ filter: /^sonner$/ }, (args) => ({
           path: args.path,
           namespace: "fixture",
         }));
-        builder.onResolve({ filter: /[/](Modal[.]ts|UpdatePanel[.]tsx)$|[.]css$/ }, (args) => ({
+        builder.onResolve({ filter: /[/](settings[.]ts|notify[.]ts)$|[.]css$/ }, (args) => ({
           path: args.path.split("/").pop()!,
           namespace: "fixture",
         }));
         builder.onLoad({ filter: /.*/, namespace: "fixture" }, ({ path }) => {
           const modules: Record<string, string> = {
-            "react-dom": "export const flushSync = f => f();",
-            "react-dom/client": "export const createRoot = () => ({ render() {}, unmount() {} });",
-            "@nanostores/react": "export const useStore = s => s.get();",
-            "Modal.ts": "export const PopupModal = globalThis.host.popup;",
-            "UpdatePanel.tsx": "export default function UpdatePanel() {}",
+            sonner:
+              "export const toast = (message, options) => globalThis.host.toast(message, options); toast.dismiss = id => globalThis.host.dismissToast(id);",
+            "settings.ts":
+              "export const openSettingsUpdates = () => globalThis.host.settings.open();",
+            "notify.ts": 'export const LYRIVA_TOASTER_ID = "lyriva-notifications";',
           };
           if (path.endsWith(".css")) return { contents: "", loader: "js" };
-          assert.ok(modules[path], `Unexpected fixture dependency: ${path}`);
+          assert.ok(modules[path], "Unexpected fixture dependency: " + path);
           return { contents: modules[path], loader: "js" };
         });
       },
     },
   ],
 });
-
+type ToastOptions = { id: string; toasterId: string; action?: { onClick: () => void } };
 function session(saved = new Map<string, string>()) {
   let state: UpdateState = { phase: "idle", currentVersion: "1.0.0" };
   let receive: ((state: UpdateState) => void) | undefined;
-  let observe: (() => void) | undefined;
-  let closing: (() => void) | undefined;
+  let retain: () => () => void = () => () => {};
+  let release: (() => void) | undefined;
+  const observers = new Set<() => void>();
+  const activeToasts = new Map<string, ToastOptions>();
   const host = {
     dialogs: false,
     displays: 0,
     checks: 0,
-    popup: {
-      isConnected: false,
-      querySelector() {
-        return this.isConnected ? { focus() {} } : null;
-      },
-      contains() {
-        return false;
-      },
-      display(options: { content: { isConnected: boolean }; onClose: () => void }) {
+    toasts: [] as Array<{ message: string; options: ToastOptions }>,
+    toast(message: string, options: ToastOptions) {
+      this.toasts.push({ message, options });
+      activeToasts.set(options.id, options);
+    },
+    dismissToast(id: string) {
+      activeToasts.delete(id);
+    },
+    settings: {
+      isOpen: false,
+      open() {
         host.displays++;
-        this.isConnected = true;
-        options.content.isConnected = true;
-        closing = options.onClose;
+        this.isOpen = true;
+        release = retain();
       },
       hide() {
-        this.isConnected = false;
-        closing?.();
+        this.isOpen = false;
+        release?.();
+        release = undefined;
       },
     },
   };
@@ -94,39 +101,46 @@ function session(saved = new Map<string, string>()) {
         },
       },
       setInterval() {},
-      setTimeout(callback: () => void) {
-        callback();
-      },
     },
-    document: {
-      body: {},
-      activeElement: null,
-      createElement: () => ({ className: "", isConnected: false }),
-      querySelector: () => (host.dialogs || host.popup.isConnected ? {} : null),
-    },
+    document: { body: {}, querySelector: () => (host.dialogs || host.settings.isOpen ? {} : null) },
     MutationObserver: class {
+      callback: () => void;
       constructor(callback: () => void) {
-        observe = callback;
+        this.callback = callback;
       }
-      observe() {}
+      observe() {
+        observers.add(this.callback);
+      }
       disconnect() {
-        observe = undefined;
+        observers.delete(this.callback);
       }
     },
   });
   runInContext(bundle.outputFiles[0].text, context);
-  const api = context.updates as { initializeUpdates(): void; openUpdatesPanel(): void };
+  const api = context.updates as {
+    initializeUpdates(): void;
+    openUpdatesPanel(): void;
+    retainUpdatePanel(): () => void;
+  };
+  retain = api.retainUpdatePanel;
   api.initializeUpdates();
   api.initializeUpdates();
-  assert.equal(host.checks, 1, "Initialize and subscribe only once");
+  assert.equal(host.checks, 1);
   return {
     host,
     api,
     saved,
-    mutate: () => observe?.(),
+    activeToasts,
     emit(next: UpdateState) {
       state = next;
       receive?.(state);
+    },
+    mutate() {
+      const callbacks = [...observers];
+      for (const callback of callbacks) callback();
+    },
+    details() {
+      activeToasts.get("lyriva-update-ready")!.action!.onClick();
     },
   };
 }
@@ -139,35 +153,50 @@ const pending: UpdateState = {
 test.emit(pending);
 test.emit({ ...pending, phase: "downloading", progress: 80 });
 assert.equal(test.host.displays, 0);
+assert.equal(test.host.toasts.length, 0);
 test.host.dialogs = true;
 test.emit({ ...pending, phase: "ready" });
-assert.equal(test.host.displays, 0, "Never replace an unsaved settings dialog");
+assert.equal(test.host.toasts.length, 0, "Do not cover an unsaved settings page");
 test.emit({ ...pending, phase: "error" });
 test.host.dialogs = false;
 test.mutate();
-assert.equal(
-  test.host.displays,
-  0,
-  "A queued ready prompt is cancelled when the state stops being ready"
-);
+assert.equal(test.host.toasts.length, 0, "Cancel a stale ready notice");
 test.host.dialogs = true;
 test.emit({ ...pending, phase: "ready" });
 test.host.dialogs = false;
 test.mutate();
-assert.equal(test.host.displays, 1);
-test.host.popup.hide();
-test.emit({ ...pending, phase: "ready" });
-assert.equal(test.host.displays, 1);
+assert.equal(test.host.displays, 0, "Use a quiet notification for ordinary updates");
+assert.equal(test.host.toasts[0].message, "Kotoba Lyrics 新版本已就绪");
+assert.equal(
+  test.host.toasts[0].options.toasterId,
+  "lyriva-notifications",
+  "Keep the isolated toaster ID for compatibility"
+);
+test.host.dialogs = true;
+test.details();
+assert.equal(test.host.displays, 0);
+test.host.dialogs = false;
+test.mutate();
+assert.equal(test.host.displays, 1, "Open the settings update detail");
+test.api.openUpdatesPanel();
+assert.equal(test.host.displays, 1, "Do not duplicate the settings window");
+test.emit({ ...pending, latestVersion: "2.1.0", phase: "ready" });
+assert.equal(
+  test.host.toasts.length,
+  1,
+  "An already-visible update page receives state without extra notifications"
+);
+test.host.settings.hide();
 const reboot = session(test.saved);
 reboot.emit({ ...pending, phase: "ready" });
-assert.equal(reboot.host.displays, 0);
+assert.equal(reboot.host.toasts.length, 0, "Remember the shown version across restarts");
 reboot.api.openUpdatesPanel();
-assert.equal(reboot.host.displays, 1, "Manual entry remains available after dismissing");
-reboot.host.popup.hide();
+assert.equal(reboot.host.displays, 1);
+reboot.host.settings.hide();
 reboot.emit({ ...pending, updateRequired: true, minimumSupportedVersion: "2.0.0" });
-assert.equal(
-  reboot.host.displays,
-  2,
-  "A new mandatory policy is not suppressed by a normal reminder"
+assert.equal(reboot.host.displays, 2, "A mandatory policy opens the same settings detail page");
+reboot.host.settings.hide();
+assert.equal(reboot.host.toasts.length, 0, "Closing settings does not add another warning popup");
+console.log(
+  "Kotoba update settings navigation, draft preservation and reminder persistence verified"
 );
-console.log("Update dialog deferral, persistence and manual entry tests passed");

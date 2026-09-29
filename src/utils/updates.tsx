@@ -1,96 +1,77 @@
-import { useStore } from "@nanostores/react";
-import { createRoot } from "react-dom/client";
-import { flushSync } from "react-dom";
-import { ProjectVersion } from "../../project/config.ts";
-import { PopupModal } from "../components/Modal.ts";
-import UpdatePanel from "../components/ReactComponents/UpdatePanel.tsx";
-import type { UpdateBridge, UpdateState } from "../updater/contracts.ts";
+import { toast } from "sonner";
+import { ProjectName, ProjectVersion } from "../../project/config.ts";
+import { LYRIVA_TOASTER_ID } from "./notify.ts";
+import { openSettingsUpdates } from "./settings.ts";
+import { getUpdateBridge, runUpdateAction } from "../updater/actions.ts";
+import type { UpdateState } from "../updater/contracts.ts";
 import { createUpdateNotices, updateNoticeKey } from "../updater/notifications.ts";
-import { $updateState, setUpdatePanelOpener } from "../updater/runtimeState.ts";
+import { $updateState, $updatePanelOpen, setUpdatePanelOpener } from "../updater/runtimeState.ts";
 import "../css/update-panel.css";
 
-export { $updateState };
-
+export { $updateState, getUpdateBridge };
 const CHECK_INTERVAL_MS = 30 * 60 * 1000;
-const MODAL_ID = "lyrivaUpdate";
+const UPDATE_TOAST_ID = "lyriva-update-ready";
+const DIALOG_SELECTOR = 'sl-generic-modal, [role="dialog"][aria-modal="true"]';
 const notices = createUpdateNotices(() => window.localStorage);
 let initialized = false;
 let pendingNotice: string | undefined;
 let waitingForModal: MutationObserver | undefined;
-
-export function getUpdateBridge(): UpdateBridge | undefined {
-  return window.__LYRIVA_UPDATER__;
+let waitingForDetails: MutationObserver | undefined;
+let toastVersion: string | undefined;
+function clearUpdateToast(): void {
+  toastVersion = undefined;
+  toast.dismiss(UPDATE_TOAST_ID);
 }
-
-function refreshState(): void {
-  const bridge = getUpdateBridge();
-  $updateState.set(bridge?.getState() ?? { phase: "idle", currentVersion: ProjectVersion });
-}
-
-async function runUpdateAction(action: "check" | "download"): Promise<void> {
-  const bridge = getUpdateBridge();
-  if (!bridge) return;
-  try {
-    await bridge[action]();
-  } catch (error) {
-    $updateState.set({
-      ...bridge.getState(),
-      phase: "error",
-      error: error instanceof Error ? error.message : "暂时无法获取更新，请稍后重试。",
-    });
-  }
-}
-
-function ConnectedUpdatePanel() {
-  const state = useStore($updateState);
-  return (
-    <UpdatePanel
-      state={state}
-      automaticUpdates={Boolean(getUpdateBridge())}
-      onCheck={() => void runUpdateAction("check")}
-      onRetry={() =>
-        void runUpdateAction(
-          state.latestVersion && state.latestVersion !== state.currentVersion ? "download" : "check"
-        )
-      }
-      onReload={() => getUpdateBridge()?.reload()}
-      onClose={() => PopupModal.hide()}
-    />
-  );
-}
-
-/** The manual entry is only on the settings overview, where no draft is being edited. */
-export function openUpdatesPanel(): void {
-  refreshState();
-  if (PopupModal.querySelector(`.slmodal-${MODAL_ID}`) && PopupModal.isConnected) return;
+function acknowledgeUpdatePanel(): void {
   notices.markPresented($updateState.get());
   pendingNotice = undefined;
   waitingForModal?.disconnect();
   waitingForModal = undefined;
-
-  const container = document.createElement("div");
-  container.className = "sl-sp-panel";
-  const root = createRoot(container);
-  flushSync(() => root.render(<ConnectedUpdatePanel />));
-  PopupModal.display({
-    title: "版本与更新",
-    content: container,
-    modalId: MODAL_ID,
-    onClose: () => root.unmount(),
-  });
-  // The dialog we waited for restores its trigger's focus in a later task.
-  // Keep keyboard focus inside this new dialog after that restoration runs.
-  window.setTimeout(() => {
-    if (container.isConnected && !PopupModal.contains(document.activeElement)) {
-      PopupModal.querySelector<HTMLElement>(`.slmodal-${MODAL_ID}`)?.focus();
-    }
-  }, 0);
+  waitingForDetails?.disconnect();
+  waitingForDetails = undefined;
+  clearUpdateToast();
 }
-
+/** Use the same window and detail page as Settings > Advanced > Version & updates. */
+export function openUpdatesPanel(): void {
+  const bridge = getUpdateBridge();
+  $updateState.set(bridge?.getState() ?? { phase: "idle", currentVersion: ProjectVersion });
+  if ($updatePanelOpen.get()) return;
+  acknowledgeUpdatePanel();
+  openSettingsUpdates();
+}
+function requestUpdateDetails(): void {
+  if ($updatePanelOpen.get()) return;
+  waitingForDetails?.disconnect();
+  const tryOpen = () => {
+    if (document.querySelector(DIALOG_SELECTOR)) return false;
+    waitingForDetails?.disconnect();
+    waitingForDetails = undefined;
+    openUpdatesPanel();
+    return true;
+  };
+  if (!tryOpen()) {
+    waitingForDetails = new MutationObserver(() => {
+      tryOpen();
+    });
+    waitingForDetails.observe(document.body, { childList: true, subtree: true });
+  }
+}
+function presentUpdateToast(state: UpdateState): void {
+  clearUpdateToast();
+  toastVersion = state.latestVersion;
+  toast(ProjectName + (state.loaderUpdateRequired ? " 有新版本" : " 新版本已就绪"), {
+    id: UPDATE_TOAST_ID,
+    toasterId: LYRIVA_TOASTER_ID,
+    position: "bottom-right",
+    duration: Infinity,
+    closeButton: true,
+    description: "v" + state.currentVersion + " → v" + state.latestVersion,
+    action: { label: "查看详情", onClick: requestUpdateDetails },
+  });
+  notices.markPresented(state);
+}
 function presentPendingUpdate(): void {
-  if (!pendingNotice) return;
-  // Wait for settings (including unsaved credential drafts) and other dialogs.
-  if (document.querySelector('sl-generic-modal, [role="dialog"][aria-modal="true"]')) return;
+  if (!pendingNotice || document.querySelector(DIALOG_SELECTOR)) return;
   const state = $updateState.get();
   if (updateNoticeKey(state) !== pendingNotice || !notices.shouldPresent(state)) {
     pendingNotice = undefined;
@@ -98,19 +79,29 @@ function presentPendingUpdate(): void {
     waitingForModal = undefined;
     return;
   }
-  openUpdatesPanel();
+  if (state.updateRequired) openUpdatesPanel();
+  else {
+    presentUpdateToast(state);
+    pendingNotice = undefined;
+    waitingForModal?.disconnect();
+    waitingForModal = undefined;
+  }
 }
-
 function receiveState(state: UpdateState): void {
   $updateState.set(state);
+  if (
+    toastVersion &&
+    (toastVersion !== state.latestVersion || state.updateRequired || !updateNoticeKey(state))
+  )
+    clearUpdateToast();
+  if ($updatePanelOpen.get()) {
+    acknowledgeUpdatePanel();
+    return;
+  }
   if (!notices.shouldPresent(state)) {
     pendingNotice = undefined;
     waitingForModal?.disconnect();
     waitingForModal = undefined;
-    return;
-  }
-  if (PopupModal.isConnected && PopupModal.querySelector(`.slmodal-${MODAL_ID}`)) {
-    notices.markPresented(state);
     return;
   }
   pendingNotice = updateNoticeKey(state);
@@ -120,14 +111,15 @@ function receiveState(state: UpdateState): void {
     waitingForModal.observe(document.body, { childList: true, subtree: true });
   }
 }
-
-/** Called once after the extension is ready; the loader owns all network work. */
 export function initializeUpdates(): void {
   if (initialized) return;
   const bridge = getUpdateBridge();
   if (!bridge) return;
   initialized = true;
   setUpdatePanelOpener(openUpdatesPanel);
+  $updatePanelOpen.listen((open) => {
+    if (open) acknowledgeUpdatePanel();
+  });
   bridge.subscribe(receiveState);
   receiveState(bridge.getState());
   void runUpdateAction("check");

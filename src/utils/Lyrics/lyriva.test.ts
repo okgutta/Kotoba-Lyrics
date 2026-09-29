@@ -31,7 +31,7 @@ function checkRequest(index: number, proxy: boolean) {
   assert.equal(new URL(url).searchParams.get("artist"), "Test Artist, Guest Artist");
   assert.equal(request.url.startsWith("https://cors-proxy.spicetify.app/"), proxy);
   const headers = new Headers(request.init.headers);
-  assert.equal(headers.get("X-Client-Name"), "lyrivaMusic");
+  assert.equal(headers.get("X-Client-Name"), "Kotoba Lyrics");
   assert.equal(headers.get("Accept"), "application/json");
   assert.equal(headers.has("Authorization"), false);
   assert.equal(headers.has("User-Agent"), false);

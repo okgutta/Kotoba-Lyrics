@@ -59,7 +59,7 @@ function emitDiagnostic(area: DiagnosticArea, status: DiagnosticStatus): void {
   };
   method.call(
     console,
-    "%c lyrivaMusic %c " +
+    "%c Kotoba Lyrics %c " +
       AREA_LABELS[area] +
       " %c " +
       LEVEL_LABELS[status.level] +

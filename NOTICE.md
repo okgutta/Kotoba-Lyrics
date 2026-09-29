@@ -1,11 +1,11 @@
 # 版权与第三方声明
 
-lyrivaMusic 由 [okgutta](https://github.com/okgutta) 独立维护。
-项目源码与修改记录：<https://github.com/okgutta/lyrivaMusic>。
+Kotoba Lyrics 由 [okgutta](https://github.com/okgutta) 独立维护。
+项目源码与修改记录：<https://github.com/okgutta/Kotoba-Lyrics>。
 
 ## Spicy Lyrics
 
-lyrivaMusic 基于 Spikerko 及其贡献者开发的 [Spicy Lyrics](https://github.com/Spikerko/spicy-lyrics)
+Kotoba Lyrics 基于 Spikerko 及其贡献者开发的 [Spicy Lyrics](https://github.com/Spikerko/spicy-lyrics)
 进行二次开发，是独立维护的修改版本，并非上游官方发行版。当前维护者的修改记录见本仓库提交历史。
 
 保留的原始声明：

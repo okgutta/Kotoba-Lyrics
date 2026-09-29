@@ -16,7 +16,7 @@ class MemoryStorage implements UpdateStorage {
 const fallback = { fallbackCode: "embedded", fallbackVersion: "1.0.0", loaderVersion: 2 };
 const code = "updated runtime";
 const bytes = new TextEncoder().encode(code);
-const root = "https://raw.githubusercontent.com/okgutta/lyrivaMusic/updates/versions/v2.1.0";
+const root = "https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/updates/versions/v2.1.0";
 const manifest = {
   schema: 1,
   version: "2.1.0",

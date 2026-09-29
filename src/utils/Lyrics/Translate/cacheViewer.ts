@@ -686,7 +686,7 @@ function openCachedLyricsViewer(trackUri: string, targetLang: string): void {
       }
     });
     lines.push("-".repeat(40));
-    lines.push("Exported from lyrivaMusic");
+    lines.push("Exported from Kotoba Lyrics");
     const text = lines.join("\n");
     try {
       await navigator.clipboard.writeText(text);

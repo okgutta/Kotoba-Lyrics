@@ -39,7 +39,7 @@ export default function SLToaster() {
     <Toaster
       id={LYRIVA_TOASTER_ID}
       className="sl-toaster"
-      containerAriaLabel="lyrivaMusic 通知"
+      containerAriaLabel="Kotoba Lyrics 通知"
       position="bottom-center"
       offset={{ bottom: bottomOffset }}
       mobileOffset={{ bottom: bottomOffset }}

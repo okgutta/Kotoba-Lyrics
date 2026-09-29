@@ -1,8 +1,8 @@
 import { defineConfig } from "@spicemod/creator";
-import { ProjectName, ProjectVersion } from "./project/config";
+import { ProjectArtifactName, ProjectVersion } from "./project/config";
 
 export default defineConfig({
-  name: ProjectName,
+  name: ProjectArtifactName,
   version: ProjectVersion,
   framework: "react",
   linter: "oxlint",

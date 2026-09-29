@@ -1,13 +1,15 @@
 import { useStore } from "@nanostores/react";
-import { $updateState, openUpdatesPanel } from "../../../utils/updates.tsx";
+import { $updateState } from "../../../updater/runtimeState.ts";
 import { matches, NavigationRow, Section } from "./components.tsx";
 
 export default function UpdateSection({
   query,
   sectionFilter,
+  onOpenDetail,
 }: {
   query: string;
   sectionFilter: string;
+  onOpenDetail: () => void;
 }) {
   const state = useStore($updateState);
   if (sectionFilter !== "All" && sectionFilter !== "advanced") return null;
@@ -33,7 +35,7 @@ export default function UpdateSection({
         label="版本与更新"
         value={value}
         description={description}
-        onClick={openUpdatesPanel}
+        onClick={onOpenDetail}
       />
     </Section>
   );

@@ -36,7 +36,7 @@ export function policyState(
     ...(compareVersions(policy.latestVersion, currentVersion) > 0
       ? { latestVersion: policy.latestVersion }
       : {}),
-    releaseUrl: `https://github.com/okgutta/lyrivaMusic/releases/tag/v${policy.latestVersion}`,
+    releaseUrl: `https://github.com/okgutta/Kotoba-Lyrics/releases/tag/v${policy.latestVersion}`,
     updateRequired: compareVersions(currentVersion, policy.minimumSupportedVersion) < 0,
   };
 }

@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "lyrivamusic",
+      "name": "kotoba-lyrics",
       "dependencies": {
         "@kawarp/core": "^1.2.0",
         "@nanostores/react": "^1.1.0",

@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { flushSync } from "react-dom";
 import { PopupModal } from "../components/Modal.ts";
 import SettingsPanel from "../components/ReactComponents/SettingsPanel/index.tsx";
+import { ProjectName } from "../../project/config.ts";
 
 const MODAL_ID = "settingsPanel";
 
@@ -27,10 +28,10 @@ function renderPanel(element: React.ReactElement) {
   return { container, root };
 }
 
-function showSettingsPanel() {
-  const { container, root } = renderPanel(React.createElement(SettingsPanel));
+function showSettingsPanel(initialPage?: "updates") {
+  const { container, root } = renderPanel(React.createElement(SettingsPanel, { initialPage }));
   PopupModal.display({
-    title: "lyrivaMusic 设置",
+    title: ProjectName + " 设置",
     content: container,
     isLarge: true,
     modalId: MODAL_ID,
@@ -40,4 +41,8 @@ function showSettingsPanel() {
 
 export function openSettingsPanel() {
   showSettingsPanel();
+}
+
+export function openSettingsUpdates() {
+  showSettingsPanel("updates");
 }

@@ -1,10 +1,10 @@
-# lyrivaMusic 歌词 API 文档
+# Kotoba Lyrics 歌词 API 文档
 
-本文档描述 lyrivaMusic 当前的歌词获取管线、服务边界和缓存行为。
+本文档描述 Kotoba Lyrics 当前的歌词获取管线、服务边界和缓存行为。
 
 ## 架构总览
 
-lyrivaMusic 使用两级歌词来源：
+Kotoba Lyrics 使用两级歌词来源：
 
 1. **LYRIVA 主源**：使用 `https://api.lyriva.xyz` 的 Unified API，通过 `/lyriva/lyrics` 一次请求获取最终歌词模型。
 2. **Genius 兜底**：LYRIVA 未命中或暂时不可用时，使用用户在设置中配置的 Genius Access Token 搜索静态歌词；只接受 Matcher 判定为 HIGH/GOOD 的候选。
@@ -29,7 +29,7 @@ GET https://api.lyriva.xyz/lyriva/lyrics
 
 ```http
 Accept: application/json
-X-Client-Name: lyrivaMusic
+X-Client-Name: Kotoba Lyrics
 ```
 
 `X-Client-Name` 用于 LYRIVA 首页与后台的客户端名称显示，直连和代理回退请求都会携带。它不用于认证，浏览器原始 `User-Agent` 仍由服务端保留供后台排查。

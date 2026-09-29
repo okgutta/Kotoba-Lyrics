@@ -58,6 +58,6 @@ export function ensureSpicetifyMenuItem(): void {
       Object.assign(Spicetify.ReactComponent, { MenuItem: [...candidates][0] });
     }
   } catch (error) {
-    console.warn("[lyrivaMusic] Failed to restore the native settings menu item", error);
+    console.warn("[Kotoba Lyrics] Failed to restore the native settings menu item", error);
   }
 }

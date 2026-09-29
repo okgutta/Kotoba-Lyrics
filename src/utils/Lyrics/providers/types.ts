@@ -1,5 +1,5 @@
 // Provider 界面：Provider 只负责「搜索 → 返回候选」与「按候选取词」，
-// 绝不自行决定「这就是目标歌曲」——匹配交给统一的 lyrivaMusic Matcher。
+// 绝不自行决定「这就是目标歌曲」——匹配交给统一的 Kotoba Lyrics Matcher。
 // 日志一律通过传入的 LyraLogger（一次请求一个 requestId）；不自行 console。
 import type { Candidate, LyricsPayload, LyricSource, TargetTrack } from "../matcher.ts";
 

@@ -1,7 +1,7 @@
 const ProviderMap: Record<string, string> = {
   spt: "Spotify",
   aml: "Apple Music",
-  spl: "lyrivaMusic",
+  spl: "Kotoba Lyrics",
   ldb: "本地数据库",
   ncm: "网易云",
   qq: "QQ 音乐",

@@ -662,7 +662,7 @@ function OpenNowBar(skipSaving: boolean = false) {
             }
             Spicetify.Player.setVolume(level);
           } catch (err) {
-            console.error("lyrivaMusic: couldn't set the volume", err);
+            console.error("Kotoba Lyrics: couldn't set the volume", err);
           }
         };
 
@@ -730,7 +730,7 @@ function OpenNowBar(skipSaving: boolean = false) {
           try {
             Spicetify.Player.toggleMute();
           } catch (err) {
-            console.error("lyrivaMusic: couldn't toggle mute", err);
+            console.error("Kotoba Lyrics: couldn't toggle mute", err);
             return;
           }
 

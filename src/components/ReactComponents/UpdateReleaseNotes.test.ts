@@ -14,7 +14,7 @@ const formatted = render(
     "修复 **逐字歌词** 与 `timing`。",
     "这一行属于同一段落。",
     "",
-    "- 支持 [发布说明](https://github.com/okgutta/lyrivaMusic/releases)",
+    "- 支持 [发布说明](https://github.com/okgutta/Kotoba-Lyrics/releases)",
     "- __设置__ 面板",
     "  连续说明",
     "",
@@ -30,7 +30,7 @@ assert.ok(
 );
 assert.ok(
   formatted.includes(
-    '<ul><li>支持 <a href="https://github.com/okgutta/lyrivaMusic/releases" target="_blank" rel="noopener noreferrer">发布说明</a></li>'
+    '<ul><li>支持 <a href="https://github.com/okgutta/Kotoba-Lyrics/releases" target="_blank" rel="noopener noreferrer">发布说明</a></li>'
   )
 );
 assert.ok(formatted.includes("<li><strong>设置</strong> 面板 连续说明</li>"));

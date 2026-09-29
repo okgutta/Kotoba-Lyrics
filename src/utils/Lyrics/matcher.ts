@@ -1,4 +1,4 @@
-// lyrivaMusic Matcher — 高准确率、宁缺毋滥的歌词匹配核心
+// Kotoba Lyrics Matcher — 高准确率、宁缺毋滥的歌词匹配核心
 //
 // 不可违反原则（见项目需求文档 §24）：
 //   1. TITLE_MATCH ≠ SONG_MATCH
@@ -667,5 +667,5 @@ export function selectBest(pool: MatchResult[]): MatchResult | null {
 }
 
 // ============================================================
-// 结构化调试日志（[lyrivaMusic Matcher]）
+// 结构化调试日志（[Kotoba Lyrics Matcher]）
 // ============================================================

@@ -6,7 +6,7 @@ import { buildUpdatePolicy } from "./update-policy.mjs";
 // CI's repository-scoped token is supplied by Actions, never bundled in the extension.
 const token = process.env.GITHUB_TOKEN;
 if (!token) throw new Error("GITHUB_TOKEN is required for release publishing.");
-const repository = "okgutta/lyrivaMusic";
+const repository = "okgutta/Kotoba-Lyrics";
 if (process.env.GITHUB_REPOSITORY && process.env.GITHUB_REPOSITORY !== repository) {
   throw new Error("Forks must configure their own update channel before publishing.");
 }
@@ -142,7 +142,7 @@ if (!release)
     body: {
       tag_name: tag,
       target_commitish: sha,
-      name: `lyrivaMusic ${tag}`,
+      name: `Kotoba Lyrics ${tag}`,
       body: notes,
       draft: true,
       prerelease: false,

@@ -68,6 +68,7 @@ sl-generic-modal.SpicyLyricsModal
   font-weight: var(--w-semibold);
   line-height: 1.4;
   letter-spacing: -0.015em;
+  white-space: nowrap;
 }
 .sl-sp-header .sl-sp-search-wrap {
   width: 100%;
@@ -1283,9 +1284,17 @@ sl-generic-modal.SpicyLyricsModal
   .sl-sp-header {
     padding: 16px;
     gap: 12px;
+    grid-template-columns: 1fr auto;
   }
   .sl-sp-header .sl-sp-search-wrap {
-    max-width: 190px;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    max-width: none;
+    width: 100%;
+  }
+  .sl-sp-header .sl-sp-close {
+    grid-column: 2;
+    grid-row: 1;
   }
   .sl-sp-sidebar-nav {
     margin-inline: 16px;
@@ -1517,6 +1526,7 @@ sl-generic-modal.SpicyLyricsModal
 
 .sl-sp-btn.sl-sp-btn--primary {
   background: rgba(255, 255, 255, 0.2);
+  color: var(--color-text-primary);
   box-shadow: var(--liquid-edge-strong), var(--liquid-cast-soft);
 }
 

@@ -1,5 +1,5 @@
 // Genius Provider（需要用户自行提供 Access Token）
-// Provider 只负责「搜索 → 返回候选」与「按候选取词」；匹配交给统一 lyrivaMusic Matcher。
+// Provider 只负责「搜索 → 返回候选」与「按候选取词」；匹配交给统一 Kotoba Lyrics Matcher。
 //
 // 两条通道都带 Access-Control-Allow-Origin: *，客户端直连 fetch 即可读：
 //   搜索: https://api.genius.com/search?q=...&access_token=TOKEN

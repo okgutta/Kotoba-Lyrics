@@ -6,7 +6,7 @@ export type CancelableTask = {
 const POLL_INTERVAL_MS = 16;
 
 function reportCallbackError(kind: "When" | "Until", error: unknown): void {
-  console.error(`lyrivaMusic: Whentil.${kind} callback failed`, error);
+  console.error(`Kotoba Lyrics: Whentil.${kind} callback failed`, error);
 }
 
 function Until<T>(
