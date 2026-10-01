@@ -444,6 +444,8 @@ function updateTranslationControl(): void {
   if (!button) return;
   const state = $translationState.get();
   const presentation = translationControlPresentation(state);
+  // Keep the button mounted so asynchronously loaded lyrics can reveal it.
+  button.style.display = state === "unavailable" ? "none" : "";
   button.innerHTML = presentation.icon;
   // 旧版把翻译开关写成 `.active`；Spotify 恢复页面或旧监听器残留时可能
   // 把该类重新带回。新实现完全由 data-translation-state 驱动，必须清掉它。
@@ -499,18 +501,14 @@ function AppendViewControls(ReAppend: boolean = false) {
         <button id="RomanizationToggle" type="button" class="ViewControl" aria-label="${isRomanized ? "关闭罗马音" : "启用罗马音"}">
           ${isRomanized ? Icons.DisableRomanization : Icons.EnableRomanization}
         </button>
-        ${
-          translationState !== "unavailable"
-            ? `<button id="TranslateToggle" type="button"
+        <button id="TranslateToggle" type="button"
           class="ViewControl${translationState === "ready" ? " translation-ready" : ""}${translationState === "loading" ? " translation-loading" : ""}${translationState === "error" ? " error" : ""}"
           data-translation-state="${translationState}"
           aria-label="${translationControl.label}"
           aria-busy="${translationState === "loading"}"
           ${translationControl.disabled ? "disabled" : ""}>
           ${translationControl.icon}
-        </button>`
-            : ""
-        }
+        </button>
         ${
           !Fullscreen.IsOpen && !Fullscreen.CinemaViewOpen
             ? IsPIP
