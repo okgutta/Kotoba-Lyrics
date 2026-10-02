@@ -14,6 +14,14 @@
 
 先安装 [Spicetify](https://spicetify.app/docs/getting-started/)。
 
+### 从 Marketplace 安装（推荐）
+
+1. 打开 Spotify 的 **Marketplace → Extensions**。
+2. 搜索 **Kotoba Lyrics**，确认维护者为 `okgutta`。
+3. 点击安装，并按提示重新加载 Spotify。
+
+### 手动安装
+
 1. 下载最新 Release 中的 [kotoba-lyrics.js](https://github.com/okgutta/Kotoba-Lyrics/releases/latest/download/kotoba-lyrics.js)。
 2. 放入 Spicetify 的 `Extensions` 文件夹；已安装用户覆盖同名文件。
 3. 执行：
@@ -25,7 +33,7 @@ spicetify apply
 
 播放歌曲后，点击播放栏的 **Kotoba Lyrics** 打开歌词。设置和更新入口位于歌词页齿轮或 Spotify 菜单。
 
-旧用户先运行 `spicetify config extensions lyrivamusic.js-` 移除旧文件的启用记录，再按上述步骤安装。原有设置与缓存保留。插件商店搜索 **Kotoba Lyrics**；若仍显示旧名称，请完整退出并重新打开 Spotify。
+旧用户先运行 `spicetify config extensions lyrivamusic.js-` 移除旧文件的启用记录，再按上述步骤安装。原有设置与缓存保留。Marketplace 可能需要刷新列表或完整退出并重新打开 Spotify 才能显示最新条目。
 
 ## 开发
 
