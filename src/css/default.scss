@@ -138,9 +138,12 @@
 
 /* Take the elapsed time out of normal layout flow to avoid document-wide reflow
  * when the text updates every second. The progress bar is offset manually to
- * preserve spacing.
+ * preserve spacing. Only older Spotify progress bars need this workaround;
+ * newer builds already isolate the time text and reserve its width natively.
  */
-body:has(#SpicyLyricsPage):not(:has([id*="dribbblish"])):not(.sltm__ThemeMatch__textdt) {
+body:has(#SpicyLyricsPage):has(.playback-bar .playback-progressbar):not(
+    :has([id*="dribbblish"])
+  ):not(.sltm__ThemeMatch__textdt) {
   .playback-bar {
     position: relative;
   }

@@ -117,18 +117,16 @@ const PageView = {
 
 export const GetPageRoot = () =>
   document.querySelector<HTMLElement>(
-    ".Root__main-view .main-view-container div[data-overlayscrollbars-viewport]"
+    ".main-view-container div[data-overlayscrollbars-viewport]"
   ) ??
   (() => {
     const child = document.querySelector<HTMLElement>(
-      ".Root__main-view .main-view-container .main-view-container__scroll-node-child"
+      ".main-view-container .main-view-container__scroll-node-child"
     );
     return child?.parentElement as HTMLElement | null;
   })() ??
-  document.querySelector<HTMLElement>(".Root__main-view .main-view-container .os-host") ??
-  document.querySelector<HTMLElement>(
-    ".Root__main-view .main-view-container .uGZUPBPcDpzSYqKcQT8r > div"
-  );
+  document.querySelector<HTMLElement>(".main-view-container .os-host") ??
+  document.querySelector<HTMLElement>(".main-view-container .uGZUPBPcDpzSYqKcQT8r > div");
 
 let PageResizeListener: ResizeObserver | null = null;
 export let PageContainer: HTMLElement | null = null;
@@ -151,10 +149,15 @@ async function OpenPage(
   }
 
   if (PageView.IsOpened) return;
+  // Spotify may not have mounted its main view yet. Leave the page closed so
+  // a later request can retry, while explicit card/PiP hosts remain independent.
+  const host = AppendTo ?? GetPageRoot();
+  if (!host) return;
+
   if ($updateRequired.get()) {
     if (options?.cardMode) return;
     PageContainer = createUpdateRequiredNotice(() => Session.GoBack());
-    (AppendTo ?? GetPageRoot())?.appendChild(PageContainer);
+    host.appendChild(PageContainer);
     PageView.IsOpened = true;
     IsCardMode = false;
     return;
@@ -248,11 +251,7 @@ async function OpenPage(
     });
   }
 
-  if (AppendTo !== undefined) {
-    AppendTo?.appendChild(elem);
-  } else {
-    GetPageRoot()?.appendChild(elem);
-  }
+  host.appendChild(elem);
 
   addLinesEvListener();
 
@@ -288,9 +287,7 @@ async function OpenPage(
   PageResizeListener.observe(elem);
 
   if (AppendTo === undefined) {
-    const legacyPage = document.querySelector<HTMLElement>(
-      ".Root__main-view .main-view-container .os-host"
-    );
+    const legacyPage = document.querySelector<HTMLElement>(".main-view-container .os-host");
     if (legacyPage) {
       legacyPage.style.containerType = "inline-size";
     }
@@ -359,9 +356,7 @@ async function DestroyPage() {
   DestroyAllLyricsContainers();
   CleanUpIsByCommunity();
 
-  const legacyPage = document.querySelector<HTMLElement>(
-    ".Root__main-view .main-view-container .os-host"
-  );
+  const legacyPage = document.querySelector<HTMLElement>(".main-view-container .os-host");
   if (legacyPage) {
     legacyPage.style.containerType = "";
   }

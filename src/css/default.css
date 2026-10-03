@@ -50,10 +50,8 @@
   font-family: SpicyLyrics, "Noto Sans Georgian", "VazirmatnRegular", sans-serif !important;
 }
 
-.Root__main-view:has(#SpicyLyricsPage) .main-view-container__scroll-node-child,
-.Root__main-view:has(#SpicyLyricsPage) .main-view-container__scroll-node-child-spacer,
-.Root__main-view:has(#SpicyLyricsPage) .main-view-container__scroll-node-child,
-.Root__main-view:has(#SpicyLyricsPage) .main-view-container__scroll-node-child-spacer {
+.main-view-container:has(#SpicyLyricsPage) .main-view-container__scroll-node-child,
+.main-view-container:has(#SpicyLyricsPage) .main-view-container__scroll-node-child-spacer {
   display: none;
 }
 
@@ -381,13 +379,13 @@ body:not(.SpicyLyrics_StaticBackground)
   pointer-events: none;
 }
 
-/* "Page Not Visible" fix */
+/* Keep the main viewport sized on both legacy and Spotify 1.3.3 layouts. */
 .Root__main-view:has(#SpicyLyricsPage),
 .Root__main-view:has(#SpicyLyricsPage) .KL8t9WB65UfUEPuTFAhO,
 .Root__main-view:has(#SpicyLyricsPage) .main-content-view,
-.Root__main-view:has(#SpicyLyricsPage) .main-view-container,
-.Root__main-view:has(#SpicyLyricsPage) .main-view-container__scroll-node,
-.Root__main-view:has(#SpicyLyricsPage) .main-view-container .div[data-overlayscrollbars-viewport] {
+.main-view-container:has(#SpicyLyricsPage),
+.main-view-container:has(#SpicyLyricsPage) .main-view-container__scroll-node,
+.main-view-container:has(#SpicyLyricsPage) div[data-overlayscrollbars-viewport] {
   height: 100% !important;
 }
 

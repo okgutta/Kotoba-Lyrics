@@ -291,7 +291,8 @@ async function main() {
               Session.Navigate({ pathname: "/SpicyLyrics" });
               if (Global.Saves.shift_key_pressed) {
                 const pageWhentil = Whentil.When(
-                  () => document.querySelector<HTMLElement>(".Root__main-view #SpicyLyricsPage"),
+                  () =>
+                    document.querySelector<HTMLElement>(".main-view-container #SpicyLyricsPage"),
                   () => {
                     Fullscreen.Open(true);
                     pageWhentil?.Cancel();
@@ -315,7 +316,7 @@ async function main() {
             if (!self.active) {
               Session.Navigate({ pathname: "/SpicyLyrics" });
               const pageWhentil = Whentil.When(
-                () => document.querySelector<HTMLElement>(".Root__main-view #SpicyLyricsPage"),
+                () => document.querySelector<HTMLElement>(".main-view-container #SpicyLyricsPage"),
                 () => {
                   Fullscreen.Open(Global.Saves.shift_key_pressed ?? false);
                   pageWhentil?.Cancel();

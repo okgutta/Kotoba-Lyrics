@@ -28,6 +28,8 @@ function store(initial: unknown = false) {
 // Only the page shell and actual control markup need DOM behavior in this test.
 class ElementFixture {
   id = "";
+  tagName = "DIV";
+  parentElement: ElementFixture | null = null;
   disabled = false;
   style: Record<string, string> = {};
   dataset: Record<string, string> = {};
@@ -71,9 +73,15 @@ class ElementFixture {
   querySelector(selector: string): ElementFixture | null {
     const [first, ...rest] = selector.split(" ");
     for (const child of this.children) {
-      const matches = first.startsWith("#")
-        ? child.id === first.slice(1)
-        : child.classes.has(first.slice(1));
+      const attribute = /^([a-z]+)?\[([\w-]+)\]$/i.exec(first);
+      const matches = attribute
+        ? (!attribute[1] || child.tagName.toLowerCase() === attribute[1].toLowerCase()) &&
+          child.attributes.has(attribute[2])
+        : first.startsWith("#")
+          ? child.id === first.slice(1)
+          : first.startsWith(".")
+            ? child.classes.has(first.slice(1))
+            : child.tagName.toLowerCase() === first.toLowerCase();
       if (matches) {
         const result = rest.length ? child.querySelector(rest.join(" ")) : child;
         if (result) return result;
@@ -84,6 +92,8 @@ class ElementFixture {
     return null;
   }
   appendChild(child: ElementFixture) {
+    child.remove();
+    child.parentElement = this;
     this.children.push(child);
   }
   setAttribute(name: string, value: string) {
@@ -100,7 +110,13 @@ class ElementFixture {
   click() {
     if (!this.disabled) this.handlers.get("click")?.forEach((handler) => handler());
   }
-  remove() {}
+  remove() {
+    if (!this.parentElement) return;
+    const siblings = this.parentElement.children;
+    const index = siblings.indexOf(this);
+    if (index >= 0) siblings.splice(index, 1);
+    this.parentElement = null;
+  }
 }
 
 const noopExports: Record<string, string[]> = {
@@ -210,6 +226,7 @@ const fixture = {
   uri: "spotify:track:first",
   fullscreen: { IsOpen: false, CinemaViewOpen: false },
   requests: 0,
+  createdElements: 0,
   async translate() {
     fixture.requests++;
   },
@@ -218,9 +235,16 @@ const fixture = {
   },
 };
 fixture.stores.$translationState.set("unavailable");
+const documentRoot = new ElementFixture();
 const context = createContext({
   fixture,
-  document: { createElement: () => new ElementFixture(), querySelector: () => null },
+  document: {
+    createElement() {
+      fixture.createdElements++;
+      return new ElementFixture();
+    },
+    querySelector: (selector: string) => documentRoot.querySelector(selector),
+  },
   Spicetify: { Player: { data: null } },
   ResizeObserver: class {
     observe() {}
@@ -231,8 +255,72 @@ const context = createContext({
 });
 runInContext(bundle.outputFiles[0].text, context);
 const api = context.pageModule as typeof PageModule;
-await api.default.Open(new ElementFixture() as unknown as HTMLElement);
+
+for (const updateRequired of [false, true]) {
+  fixture.stores.$updateRequired.set(updateRequired);
+  await api.default.Open();
+  assert.equal(api.default.IsOpened, false, "A missing main view must leave opening retryable");
+  assert.equal(api.PageContainer, null);
+  assert.equal(fixture.stores.$lyricsContainerExists.get(), false);
+  assert.equal(fixture.createdElements, 0, "A missing host must not create a detached page");
+}
+fixture.stores.$updateRequired.set(false);
+
+// Spotify 1.3.3 keeps this container and viewport but drops Root__main-view.
+// Sidebar viewports come first/last to catch an accidentally unscoped lookup.
+const leftViewport = new ElementFixture();
+leftViewport.setAttribute("data-overlayscrollbars-viewport", "");
+documentRoot.appendChild(leftViewport);
+const mainView = new ElementFixture();
+mainView.classList.add("main-view-container");
+documentRoot.appendChild(mainView);
+const scrollNode = new ElementFixture();
+scrollNode.classList.add("main-view-container__scroll-node");
+mainView.appendChild(scrollNode);
+const mainViewport = new ElementFixture();
+mainViewport.setAttribute("data-overlayscrollbars-viewport", "");
+scrollNode.appendChild(mainViewport);
+const scrollChild = new ElementFixture();
+scrollChild.classList.add("main-view-container__scroll-node-child");
+mainViewport.appendChild(scrollChild);
+const rightViewport = new ElementFixture();
+rightViewport.setAttribute("data-overlayscrollbars-viewport", "");
+documentRoot.appendChild(rightViewport);
+
+assert.equal(documentRoot.querySelector(".Root__main-view"), null);
+assert.equal(api.GetPageRoot(), mainViewport);
+await api.default.Open();
+assert.equal(api.default.IsOpened, true, "Opening retries after the main view becomes available");
+assert.equal(fixture.stores.$lyricsContainerExists.get(), true);
+assert.equal((api.PageContainer as unknown as ElementFixture).parentElement, mainViewport);
+assert.equal(leftViewport.children.length, 0);
+assert.equal(rightViewport.children.length, 0);
+await api.default.Destroy();
+assert.equal(mainViewport.querySelector("#SpicyLyricsPage"), null);
+assert.equal(fixture.stores.$lyricsContainerExists.get(), false);
+
+mainViewport.removeAttribute("data-overlayscrollbars-viewport");
+assert.equal(api.GetPageRoot(), mainViewport, "The scroll-child parent fallback remains usable");
+scrollChild.remove();
+mainViewport.classList.add("os-host");
+assert.equal(api.GetPageRoot(), mainViewport, "Legacy scroll hosts remain usable");
+await api.default.Open();
+assert.equal(mainViewport.style.containerType, "inline-size");
+await api.default.Destroy();
+assert.equal(mainViewport.style.containerType, "");
+
+mainView.remove();
+assert.equal(api.GetPageRoot(), null, "Sidebar viewports must never become the main host");
+const cardHost = new ElementFixture();
+await api.default.Open(cardHost as unknown as HTMLElement, { cardMode: true });
+assert.equal(api.IsCardMode, true);
+assert.equal((api.PageContainer as unknown as ElementFixture).parentElement, cardHost);
+await api.default.Destroy();
+
+const explicitHost = new ElementFixture();
+await api.default.Open(explicitHost as unknown as HTMLElement);
 const page = api.PageContainer as unknown as ElementFixture;
+assert.equal(page.parentElement, explicitHost, "Explicit hosts work without Spotify's main view");
 const controls = page.querySelector(".ContentBox .ViewControls")!;
 const button = () => page.querySelector("#TranslateToggle");
 const initial = button();
@@ -291,5 +379,5 @@ for (const cinema of [true, false, true]) {
   assert.equal(fixture.requests, before + 1, "Each rebuilt toolbar binds one translation request");
 }
 console.log(
-  "PageView: delayed translation availability, state updates, song changes and toolbar rebuilds verified"
+  "PageView: main-view compatibility, missing-host retry, explicit hosts and translation controls verified"
 );
