@@ -11,6 +11,7 @@ assert.equal(
   manifest.main,
   `https://github.com/okgutta/Kotoba-Lyrics/releases/latest/download/${ProjectArtifactName}.js`
 );
-assert.ok(manifest.tags.includes("kotoba-lyrics"));
+assert.ok(manifest.tags.includes("中文歌词"));
+assert.ok(manifest.tags.includes("双语歌词"));
 assert.ok(manifest.tags.includes("kotoba"));
 console.log("Installer filename and Marketplace name/download contract verified");
