@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "version": "1.6.4",
+  "loaderVersion": 2,
+  "runtime": {
+    "url": "https://raw.githubusercontent.com/okgutta/Kotoba-Lyrics/main/versions/v1.6.4/lyrivamusic-runtime.js",
+    "sha256": "31e26b72eb008b7987f1d4aa840a8dc79898825e35fd18aec6a0e0d857284243",
+    "size": 1495944
+  }
+}
