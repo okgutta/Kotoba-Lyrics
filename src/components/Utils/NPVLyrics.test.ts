@@ -27,6 +27,8 @@ function store<T>(initial: T) {
 
 class ElementFixture {
   isConnected = true;
+  parentElement: ElementFixture | null = null;
+  hidden = false;
   id = "";
   classes = new Set<string>();
   children = new Map<string, ElementFixture>();
@@ -53,13 +55,37 @@ class ElementFixture {
     return [...this.children.entries()].filter(([key]) => key.startsWith("#")).map(([, el]) => el);
   }
   closest() {
-    return null;
+    return this.hidden ? this : null;
   }
-  contains(target: ElementFixture) {
-    return target === this || [...this.children.values()].includes(target);
+  contains(target: ElementFixture): boolean {
+    return target === this || [...this.children.values()].some((child) => child.contains(target));
   }
   prepend(element: ElementFixture) {
-    this.children.set("card", element);
+    this.detachChild(element);
+    this.children = new Map([["card", element], ...this.children]);
+    element.parentElement = this;
+  }
+  private detachChild(element: ElementFixture) {
+    for (const [key, child] of element.parentElement?.children ?? []) {
+      if (child === element) element.parentElement!.children.delete(key);
+    }
+  }
+  get firstElementChild(): ElementFixture | null {
+    return this.children.values().next().value ?? null;
+  }
+  get nextElementSibling() {
+    const siblings = [...(this.parentElement?.children.values() ?? [])];
+    return siblings[siblings.indexOf(this) + 1] ?? null;
+  }
+  insertAdjacentElement(position: "beforebegin" | "afterend", element: ElementFixture) {
+    const parent = this.parentElement;
+    assert.ok(parent);
+    this.detachChild(element);
+    const entries = [...parent.children];
+    const index = entries.findIndex(([, child]) => child === this);
+    entries.splice(index + (position === "afterend" ? 1 : 0), 0, ["card", element]);
+    parent.children = new Map(entries);
+    element.parentElement = parent;
   }
   remove() {
     this.isConnected = false;
@@ -113,6 +139,7 @@ const bundle = await build({
               "export const SpotifyPlayer = { GetUri: () => 'spotify:track:fixture' };",
             "Logger.ts":
               "export default class { debug() {} warn() {} error(error) { throw error; } }",
+            "tooltip.ts": "export const createTooltip = () => null;",
           };
           assert.ok(modules[path], `Unknown NPV dependency ${path}`);
           return { contents: `const fixture = globalThis.fixture; ${modules[path]}`, loader: "js" };
@@ -123,17 +150,35 @@ const bundle = await build({
 });
 
 function createFixture(
-  options: { nested?: boolean; reduced?: boolean; throws?: boolean; api?: boolean } = {}
+  options: {
+    nested?: boolean;
+    reduced?: boolean;
+    throws?: boolean;
+    api?: boolean;
+    modern?: boolean;
+    late?: boolean;
+  } = {}
 ) {
   const root = new ElementFixture();
   const body = new ElementFixture();
   const npv = new ElementFixture();
   const sidebar = new ElementFixture();
   const top = new ElementFixture();
-  npv.children.set(".main-nowPlayingView-content", new ElementFixture());
+  let mounted = !options.late;
+  const content = new ElementFixture();
+  npv.children.set(
+    options.modern ? '[data-testid="NPV_Panel_OpenDiv"]' : ".main-nowPlayingView-content",
+    content
+  );
+  content.parentElement = npv;
+  npv.parentElement = sidebar;
   const timers = new Map<number, () => void>();
   let nextTimer = 0;
-  const observers: Array<{ callback: (records: unknown[]) => void; target?: ElementFixture }> = [];
+  const observers: Array<{
+    callback: (records: unknown[]) => void;
+    target?: ElementFixture;
+    options?: MutationObserverInit;
+  }> = [];
   const transitions: Array<{
     run: () => void;
     finish: () => void;
@@ -187,9 +232,10 @@ function createFixture(
       body,
       documentElement: root,
       createElement: () => new ElementFixture(),
+      getElementById: () => (options.modern && mounted ? npv : null),
       querySelector(selector: string) {
-        if (selector === ".Root__right-sidebar aside.NowPlayingView") return npv;
-        if (selector === ".Root__right-sidebar") return sidebar;
+        if (selector === "aside.NowPlayingView") return mounted ? npv : null;
+        if (selector === ".Root__right-sidebar") return options.modern ? null : sidebar;
         if (selector === ".Root__top-container") return top;
         return null;
       },
@@ -227,8 +273,9 @@ function createFixture(
         this.entry = { callback };
         observers.push(this.entry);
       }
-      observe(target: ElementFixture) {
+      observe(target: ElementFixture, observerOptions: MutationObserverInit) {
         this.entry.target = target;
+        this.entry.options = observerOptions;
       }
       disconnect() {}
     },
@@ -260,6 +307,18 @@ function createFixture(
     tick,
     card,
     click: (name = "#NPVCardMaximize") => card().querySelector(name)!.click(),
+    npv,
+    content,
+    observers,
+    mount() {
+      mounted = true;
+      observers.find((observer) => observer.target === top)!.callback([{ target: top }]);
+    },
+    notifyPanel() {
+      observers
+        .findLast((observer) => observer.target === sidebar)!
+        .callback([{ target: content }]);
+    },
     detach() {
       card().remove();
       observers.find((observer) => observer.target === sidebar)!.callback([{ target: npv }]);
@@ -368,6 +427,77 @@ assert.equal(requiredUpdate.fixture.page.IsOpened, false);
 requiredUpdate.fixture.stores.$updateRequired.set(false);
 await requiredUpdate.tick();
 assert.ok(requiredUpdate.api.GetNPVCardElement(), "A relaxed policy allows the card again");
+
+const modern = await start({ modern: true });
+assert.equal(modern.body.classes.has("SpicyLyrics_NPVCardEnabled"), true);
+assert.equal(modern.card().parentElement, modern.content);
+assert.equal(modern.content.classes.has("SpicyLyrics_NPVStretch"), true);
+const artwork = new ElementFixture();
+artwork.parentElement = modern.content;
+modern.content.children.set('[data-testid="track-visual-enhancement"]', artwork);
+modern.notifyPanel();
+await modern.tick();
+assert.equal(
+  artwork.nextElementSibling,
+  modern.card(),
+  "Late artwork moves the existing card below it"
+);
+assert.equal(modern.fixture.page.opens, 1, "Repositioning preserves the lyrics pipeline");
+const nativeLyrics = new ElementFixture();
+nativeLyrics.parentElement = modern.content;
+modern.content.children.set('[data-testid="lyrics-npv-section"]', nativeLyrics);
+modern.notifyPanel();
+await modern.tick();
+assert.equal(
+  modern.card().nextElementSibling,
+  nativeLyrics,
+  "Card precedes the native lyrics section"
+);
+modern.npv.hidden = true;
+modern.notifyPanel();
+await modern.tick();
+assert.equal(modern.api.GetNPVCardElement(), null, "Hidden modern panels release the lyrics page");
+assert.equal(modern.content.classes.has("SpicyLyrics_NPVStretch"), false);
+
+const setting = await start({ modern: true });
+setting.fixture.stores.$disableNpvLyrics.set(true);
+assert.equal(
+  setting.body.classes.has("SpicyLyrics_NPVCardEnabled"),
+  false,
+  "Disabling the replacement immediately restores the native lyrics section"
+);
+await setting.tick();
+assert.equal(setting.api.GetNPVCardElement(), null);
+setting.fixture.stores.$disableNpvLyrics.set(false);
+assert.equal(setting.body.classes.has("SpicyLyrics_NPVCardEnabled"), true);
+await setting.tick();
+assert.ok(setting.card());
+
+const initiallyDisabled = createFixture({ modern: true });
+initiallyDisabled.fixture.stores.$disableNpvLyrics.set(true);
+initiallyDisabled.api.initNPVLyrics();
+await initiallyDisabled.tick();
+assert.equal(initiallyDisabled.body.classes.has("SpicyLyrics_NPVCardEnabled"), false);
+assert.equal(initiallyDisabled.api.GetNPVCardElement(), null);
+
+const late = createFixture({ modern: true, late: true });
+late.api.initNPVLyrics();
+await late.tick();
+assert.equal(late.api.GetNPVCardElement(), null);
+assert.equal(
+  late.observers[0].options?.subtree,
+  true,
+  "Observe deep mounts while the NPV is missing"
+);
+late.mount();
+await late.tick();
+assert.ok(late.card(), "A modern sidebar mounted after initialization gets a card");
+assert.equal(
+  late.observers[0].options?.subtree,
+  false,
+  "Narrow the top observer once the panel is found"
+);
+
 console.log(
-  "NPVLyrics: rapid toggles, detached cards, teardown, fallback and cancellation verified"
+  "NPVLyrics: morph lifecycle, modern sidebar, delayed artwork and delayed mounting verified"
 );

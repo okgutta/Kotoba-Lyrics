@@ -23,7 +23,7 @@
 }
 
 .spicy-pip-wrapper #SpicyLyricsPage .LyricsContainer .sl-lyrics-skeleton {
-  --sl-skeleton-line-size: clamp(1.7rem, calc(1cqw * 5.5), 2.6rem);
+  --sl-skeleton-line-size: clamp(1.2rem, min(max(1.7rem, 5.5vw), 8vh, 8vw), 2.6rem);
 }
 
 #SpicyLyricsPage .LyricsContainer .sl-lyrics-skeleton-lines {

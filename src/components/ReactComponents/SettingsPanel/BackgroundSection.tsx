@@ -1,5 +1,7 @@
 import { useStore } from "@nanostores/react";
 import {
+  $animationFpsCap,
+  $animationFpsCapEnabled,
   $showNpvDynamicBg,
   $skipSpicyFont,
   $staticBackgroundBlur,
@@ -21,6 +23,8 @@ export default function BackgroundSection({ query, sectionFilter }: Props) {
   const staticBackgroundBlur = useStore($staticBackgroundBlur);
   const showNpvDynamicBg = useStore($showNpvDynamicBg);
   const skipSpicyFont = useStore($skipSpicyFont);
+  const animationFpsCapEnabled = useStore($animationFpsCapEnabled);
+  const animationFpsCap = useStore($animationFpsCap);
 
   if (sectionFilter !== "All" && sectionFilter !== SECTION_NAME) return null;
 
@@ -42,7 +46,9 @@ export default function BackgroundSection({ query, sectionFilter }: Props) {
     "不加载 Kotoba Lyrics 内置字体，跟随 Spotify 当前字体。"
   );
 
-  if (!r1 && !r2 && !r3 && !r4) return null;
+  const r5 = matches(query, "限制动画帧率 FPS", "限制歌词和动态背景的动画帧率，降低 CPU 占用。");
+
+  if (!r1 && !r2 && !r3 && !r4 && !r5) return null;
 
   return (
     <Section>
@@ -76,6 +82,30 @@ export default function BackgroundSection({ query, sectionFilter }: Props) {
         <Row label="播放面板动态背景">
           <Toggle checked={showNpvDynamicBg} onChange={(v) => $showNpvDynamicBg.set(v)} />
         </Row>
+      )}
+
+      {r5 && (
+        <>
+          <Row label="限制动画帧率" description="限制歌词和动态背景的动画帧率，降低 CPU 占用。">
+            <Toggle
+              checked={animationFpsCapEnabled}
+              onChange={(v) => $animationFpsCapEnabled.set(v)}
+            />
+          </Row>
+          {animationFpsCapEnabled && (
+            <Row label="动画帧率上限" nested stacked>
+              <Slider
+                value={animationFpsCap}
+                min={15}
+                max={240}
+                step={1}
+                defaultValue={60}
+                unit="FPS"
+                onChange={(v) => $animationFpsCap.set(v)}
+              />
+            </Row>
+          )}
+        </>
       )}
 
       {r4 && (

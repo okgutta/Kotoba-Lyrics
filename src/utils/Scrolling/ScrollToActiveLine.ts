@@ -200,6 +200,10 @@ const GetScrollLine = (Lines: LyricsLine[] | LyricsSyllable[], ProcessedPosition
   return enhance(ResolveToLeadIndex(Lines, lastIdx - firstIdx <= 1 ? firstIdx : lastIdx));
 };
 
+// Scale the top anchor with short popup viewports so it clears the bottom fade.
+const GetTopScrollOffset = (container: HTMLElement) =>
+  IsPIP ? Math.min(50, Math.round(container.clientHeight * 0.2)) : 85;
+
 const ScrollTo = (
   container: HTMLElement,
   element: HTMLElement,
@@ -215,14 +219,14 @@ const ScrollTo = (
       lineIndex,
       type === "Top" ? "start" : "center",
       instantScroll,
-      type === "Top" ? (IsPIP ? -50 : -85) : 30
+      type === "Top" ? -GetTopScrollOffset(container) : 30
     );
     return;
   }
   if (type === "Center") {
     ScrollIntoCenterViewCSS(container, element, -30, instantScroll);
   } else if (type === "Top") {
-    ScrollIntoTopViewCSS(container, element, IsPIP ? 50 : 85, instantScroll);
+    ScrollIntoTopViewCSS(container, element, GetTopScrollOffset(container), instantScroll);
   }
 };
 

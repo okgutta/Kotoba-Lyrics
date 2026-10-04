@@ -6,6 +6,7 @@ import {
 } from "@tanstack/virtual-core";
 import { Maid } from "../../modules/Maid.ts";
 import Logger from "../Logger.ts";
+import { cancelCappedFrame, requestCappedFrame } from "../AnimationFrameLoop.ts";
 
 // Gap scale factors relative to 1cqw (containerWidth / 100).
 // Gap is baked into each wrapper's padding-bottom so items can have
@@ -64,7 +65,7 @@ class LyricsVirtualizer {
 
   // RAF handle used to coalesce multiple ResizeObserver entries into one _willUpdate()
   // call per frame.
-  private _resizeRAF: ReturnType<typeof requestAnimationFrame> | null = null;
+  private _resizeRAF: number | null = null;
 
   // Last observed clientWidth of the scroll element.
   private _containerWidth = 0;
@@ -92,7 +93,7 @@ class LyricsVirtualizer {
   // so the first scroll after init (e.g. mid-song open) lands on a stale, clamped
   // position. We retry one frame after every scroll so the updated cache can
   // re-compute the target until it stabilises.
-  private _scrollVerifyRAF: ReturnType<typeof requestAnimationFrame> | null = null;
+  private _scrollVerifyRAF: number | null = null;
   // Walk far targets (mid-song open) until the line is actually mounted; bounded so a
   // pathological case can't loop forever (~0.5s at 60fps).
   private static readonly _MAX_SCROLL_RETRIES = 30;
@@ -360,7 +361,7 @@ class LyricsVirtualizer {
         this._scrollEndTimer = null;
       }
       if (this._resizeRAF !== null) {
-        cancelAnimationFrame(this._resizeRAF);
+        cancelCappedFrame(this._resizeRAF);
         this._resizeRAF = null;
       }
     });
@@ -394,7 +395,7 @@ class LyricsVirtualizer {
           changed = true;
         }
         if (changed && this._resizeRAF === null) {
-          this._resizeRAF = requestAnimationFrame(() => {
+          this._resizeRAF = requestCappedFrame(() => {
             this._resizeRAF = null;
             if (this._virtualizer === v) {
               virtualizerLogger.debug("ResizeObserver scheduled virtualizer update");
@@ -427,7 +428,7 @@ class LyricsVirtualizer {
           }
         }
         if (changed && this._resizeRAF === null) {
-          this._resizeRAF = requestAnimationFrame(() => {
+          this._resizeRAF = requestCappedFrame(() => {
             this._resizeRAF = null;
             if (this._virtualizer === v) {
               virtualizerLogger.debug("Class mutation scheduled virtualizer update");
@@ -462,8 +463,8 @@ class LyricsVirtualizer {
     virtualizerLogger.debug("Scroll position reset to top during init");
     this._virtualizer._willUpdate();
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
+    requestCappedFrame(() => {
+      requestCappedFrame(() => {
         const v = this._virtualizer;
         if (!v || !this._scrollEl) return;
         const settled = this._scrollEl.clientWidth;
@@ -562,7 +563,7 @@ class LyricsVirtualizer {
     const _handleVisibilityRestore = () => {
       if (document.hidden) return;
       virtualizerLogger.debug("Visibility restored; forcing remeasure cycle");
-      requestAnimationFrame(() => {
+      requestCappedFrame(() => {
         const v = this._virtualizer;
         if (!v || !this._scrollEl) return;
         const w = this._scrollEl.clientWidth;
@@ -636,7 +637,9 @@ class LyricsVirtualizer {
     if (!this._virtualContainer) return;
 
     const totalSize = v.getTotalSize();
-    this._virtualContainer.style.height = `${totalSize}px`;
+    const height = `${totalSize}px`;
+    if (this._virtualContainer.style.height !== height)
+      this._virtualContainer.style.height = height;
 
     const items = v.getVirtualItems();
     const nextVisible = new Set(items.map((i) => i.index));
@@ -674,7 +677,7 @@ class LyricsVirtualizer {
         }
         v.measureElement(wrapper);
         if (this._resizeRAF === null) {
-          this._resizeRAF = requestAnimationFrame(() => {
+          this._resizeRAF = requestCappedFrame(() => {
             this._resizeRAF = null;
             if (this._virtualizer === v) {
               virtualizerLogger.debug("Unmount pass scheduled virtualizer update");
@@ -696,7 +699,8 @@ class LyricsVirtualizer {
       if (Math.abs(prevPad - gap) >= 0.5) {
         wrapper.style.paddingBottom = `${gap}px`;
       }
-      wrapper.style.transform = `translateY(${Math.round(item.start)}px)`;
+      const transform = `translateY(${Math.round(item.start)}px)`;
+      if (wrapper.style.transform !== transform) wrapper.style.transform = transform;
 
       if (!this._mountedIndices.has(item.index)) {
         this._virtualContainer.appendChild(wrapper);
@@ -714,7 +718,7 @@ class LyricsVirtualizer {
       }
     }
     if (didMeasure && this._resizeRAF === null) {
-      this._resizeRAF = requestAnimationFrame(() => {
+      this._resizeRAF = requestCappedFrame(() => {
         this._resizeRAF = null;
         if (this._virtualizer === v) {
           virtualizerLogger.debug("Mount pass scheduled virtualizer update");
@@ -774,7 +778,7 @@ class LyricsVirtualizer {
     padding: number = 0
   ): void {
     if (this._scrollVerifyRAF !== null) {
-      cancelAnimationFrame(this._scrollVerifyRAF);
+      cancelCappedFrame(this._scrollVerifyRAF);
       this._scrollVerifyRAF = null;
     }
     this._setConverging(true);
@@ -970,7 +974,7 @@ class LyricsVirtualizer {
     }
 
     if (retry < LyricsVirtualizer._MAX_SCROLL_RETRIES) {
-      this._scrollVerifyRAF = requestAnimationFrame(() => {
+      this._scrollVerifyRAF = requestCappedFrame(() => {
         this._scrollVerifyRAF = null;
         if (this._virtualizer !== v) {
           this._setConverging(false);
@@ -1025,7 +1029,7 @@ class LyricsVirtualizer {
       });
     }
     if (this._scrollVerifyRAF !== null) {
-      cancelAnimationFrame(this._scrollVerifyRAF);
+      cancelCappedFrame(this._scrollVerifyRAF);
       this._scrollVerifyRAF = null;
     }
     // Reset convergence so the next virtualizer instance doesn't inherit a stale `true`

@@ -27,7 +27,13 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   position: relative;
-  will-change: transform, opacity;
+}
+
+/* Only moving words need compositor layers; idle words share their line's layer. */
+#SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .line.Active .word,
+#SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .line.Active .letterGroup,
+#SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .line.Active .letter {
+  will-change: transform, scale, opacity;
 }
 
 #SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .line,
@@ -570,7 +576,9 @@
   #SpicyLyricsPage.SpicyRenderer
   .LyricsContainer
   .SpicyLyricsScrollContainer[data-lyrics-type="Static"] {
-  --DefaultLyricsSize: calc(clamp(1.4rem, calc(1cqw * 6), 2.3rem) * var(--sl-lyrics-font-scale, 1));
+  --DefaultLyricsSize: calc(
+    clamp(1rem, min(max(1.4rem, 6vw), 7vh, 7vw), 2.3rem) * var(--sl-lyrics-font-scale, 1)
+  );
 }
 
 #SpicyLyricsPage.SpicyRenderer
@@ -744,7 +752,7 @@
 
 #SpicyLyricsPage.SpicyRenderer.Fullscreen.MinimalLyricsMode:not(.CompactMode)
   .LyricsContainer
-  .LyricsContent:not(:has(.line.Active)):not(:has(.line.NotSung))
+  .LyricsContent.LinesAllSung
   .line:not(.musical-line):not(.static) {
   scale: 1;
   opacity: var(--Vocal-Sung-opacity, 0.5);
@@ -830,12 +838,14 @@
   width: calc(100% + 0.25cqw * 2);
   height: calc(100% + 0.85cqw * 2);
   background-color: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(2px);
+  /* Invisible hover backgrounds need no backdrop-filter layer. */
+  backdrop-filter: none;
   opacity: 0;
   scale: 0.9;
   border-radius: 16px;
   transition:
     opacity 0.25s ease,
+    backdrop-filter 0.25s ease,
     scale 0.4s
       linear(
         0,
@@ -864,6 +874,7 @@
   .line:hover::before {
   opacity: 1;
   scale: 1.05;
+  backdrop-filter: blur(2px);
 }
 /* Translation remains secondary in bilingual mode, above or below the lead. */
 #SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .line .line-translation {

@@ -11,6 +11,7 @@ import {
 } from "./BackgroundAnimationController.ts";
 import { getDynamicAudioAnalysis } from "../../utils/audioAnalysis.ts";
 import Logger from "../../utils/Logger.ts";
+import { onAnimationFrame } from "../../utils/AnimationFrameLoop.ts";
 import { LatestRequestGuard } from "../../modules/LatestRequestGuard.ts";
 
 const dynamicBgLogger = new Logger("Dynamic Background");
@@ -34,6 +35,27 @@ let cachedColorBackgroundEl: HTMLElement | null = null;
 export const KawarpMap = new Map<HTMLElement | string, Kawarp>();
 const animSpeedController = new BackgroundAnimationController();
 const backgroundRequestGuard = new LatestRequestGuard<HTMLElement | string>();
+
+const runningKawarps = new WeakSet<Kawarp>();
+let stopBackgroundFrame: (() => void) | null = null;
+function startKawarp(kawarp: Kawarp): void {
+  if (runningKawarps.has(kawarp)) return;
+  // Seed Kawarp's clock, then render on the same capped frames as the lyrics.
+  kawarp.start();
+  kawarp.stop();
+  runningKawarps.add(kawarp);
+  if (stopBackgroundFrame) return;
+  stopBackgroundFrame = onAnimationFrame(() => {
+    if (KawarpMap.size === 0) {
+      stopBackgroundFrame?.();
+      stopBackgroundFrame = null;
+      return;
+    }
+    KawarpMap.forEach((instance) => {
+      if (runningKawarps.has(instance)) instance.renderFrame();
+    });
+  });
+}
 
 interface ApplyDynamicBackgroundOpts {
   doTransitionDurationAppendWithPromise?: boolean;
@@ -334,7 +356,7 @@ export default async function ApplyDynamicBackground(
       .forEach((background) => background !== canvas && background.remove());
     KawarpMap.set(requestKey, kawarpInstance);
     canvas.style.visibility = "";
-    kawarpInstance.start();
+    startKawarp(kawarpInstance);
     const msDelay = (KawarpOptionsStatic.transitionDuration ?? 0) * 2;
 
     if (opts?.doTransitionDurationAppendWithPromise) {
@@ -536,6 +558,7 @@ Global.Event.listen("page:open", () => {
 });
 
 const handlePlaybackProgress = async (): Promise<void> => {
+  if (KawarpMap.size === 0) return;
   const songUri = SpotifyPlayer.GetUri();
   if (!songUri) {
     resetDynamicBackgroundAnimationSpeed();

@@ -1,4 +1,5 @@
 import { IsPIP } from "../../../../components/Utils/PopupLyrics.ts";
+import { createTooltip } from "../../../tooltip.ts";
 
 let isByCommunityAbortController: AbortController | null = null;
 let madeTippys = new Set<any>();
@@ -121,7 +122,7 @@ export function ApplyIsByCommunity(data: any, LyricsContainer: HTMLElement): voi
   if (uploaderSpan) {
     if (!IsPIP) {
       madeTippys.add(
-        Spicetify.Tippy(uploaderSpan, {
+        createTooltip(uploaderSpan, {
           ...Spicetify.TippyProps,
           content: `查看 TTML 作者主页`,
         })
@@ -143,7 +144,7 @@ export function ApplyIsByCommunity(data: any, LyricsContainer: HTMLElement): voi
   if (makerSpan) {
     if (!IsPIP) {
       madeTippys.add(
-        Spicetify.Tippy(makerSpan, {
+        createTooltip(makerSpan, {
           ...Spicetify.TippyProps,
           content: `查看 TTML 作者主页`,
         })

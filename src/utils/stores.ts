@@ -57,6 +57,9 @@ export const $minimalLyricsMode = persistAtom<boolean>("minimalLyricsMode", fals
 export const $lineHoverBackground = persistAtom<boolean>("lineHoverBackground", true);
 export const $skipSpicyFont = persistAtom<boolean>("skipSpicyFont", false);
 export const $showNpvDynamicBg = persistAtom<boolean>("showNpvDynamicBg", true);
+// Shared cap for lyric, background and scroll animation; off by default.
+export const $animationFpsCapEnabled = persistAtom<boolean>("animationFpsCapEnabled", false);
+export const $animationFpsCap = persistAtom<number>("animationFpsCap", 60);
 // Never inject the lyrics card into the Now Playing sidebar at all.
 export const $disableNpvLyrics = persistAtom<boolean>("disableNpvLyrics", false);
 // Pull the whole NPV lyrics card out of the sidebar while the current track has

@@ -9,10 +9,12 @@ const { build } = createRequire(import.meta.url)("esbuild") as typeof Esbuild;
 
 class FixtureStyle {
   private values = new Map<string, [string, string]>();
+  writes = 0;
   animation = "";
   willChange = "";
   backfaceVisibility = "";
   setProperty(property: string, value: string, priority = ""): void {
+    this.writes++;
     this.values.set(property, [value, priority]);
   }
   getPropertyValue(property: string): string {
@@ -44,7 +46,8 @@ class FixtureElement {
     public top = 0,
     public height = 100
   ) {}
-  closest(): typeof viewport {
+  closest(selector: string): typeof viewport | FixtureElement {
+    if (selector === ".LyricsContent") return lyricsContent;
     assert.equal(virtual, false, "Virtual lyrics must not query the DOM for a viewport");
     return viewport;
   }
@@ -54,6 +57,8 @@ class FixtureElement {
     return { top: this.top, height: this.height };
   }
 }
+
+const lyricsContent = new FixtureElement();
 
 function element(top = 0, height = 100): HTMLElement {
   return new FixtureElement(top, height) as unknown as HTMLElement;
@@ -309,6 +314,35 @@ try {
       parseFloat(value(long.HTMLElement, "--text-shadow-opacity")),
     "Short words receive less glow than sustained words"
   );
+  assert.equal(
+    node(short.HTMLElement).style.willChange,
+    "",
+    "Words receive layers from active-line CSS only"
+  );
+  assert.equal(
+    node(letter.HTMLElement).style.willChange,
+    "",
+    "Letters retain no permanent layer hint"
+  );
+  assert.ok(!node(motionLine.HTMLElement).style.willChange.includes("filter"));
+  for (let i = 0; i < 300; i++) frame(1000);
+  const settledWrites = node(long.HTMLElement).style.writes;
+  frame(1000);
+  assert.equal(
+    node(long.HTMLElement).style.writes,
+    settledWrites,
+    "Settled springs and gradients do not rewrite styles"
+  );
+  assert.equal(lyricsContent.classList.contains("LinesAllSung"), false);
+  frame(6000);
+  assert.equal(lyricsContent.classList.contains("LinesAllSung"), true);
+  frame(1000);
+  assert.equal(
+    value(long.HTMLElement, "--gradient-position"),
+    "40%",
+    "Seeking back invalidates sung gradients"
+  );
+  assert.equal(lyricsContent.classList.contains("LinesAllSung"), false);
   frame(1050);
   assert.equal(value(short.HTMLElement, "--gradient-position"), "70%");
   assert.equal(value(long.HTMLElement, "--gradient-position"), "43%");
@@ -355,6 +389,29 @@ try {
     "Original inline styles are restored"
   );
   assert.equal(domReads, 6, "All subsequent virtual frames avoid DOM geometry reads");
+
+  fixture.stores.$simpleLyricsMode.set(true);
+  for (const rendering of ["calculate", "css"]) {
+    fixture.stores.$simpleLyricsModeRenderingType.set(rendering);
+    const simpleWord = word(1000, 2000);
+    const simpleLetter = { HTMLElement: element(), StartTime: 1000, EndTime: 2000 };
+    const simpleGroup = { ...word(1000, 2000), LetterGroup: true, Letters: [simpleLetter] };
+    useLines([line(1000, 2000, 500, [simpleWord, simpleGroup])]);
+    const targets = [simpleWord.HTMLElement, simpleLetter.HTMLElement];
+    frame(0);
+    for (const el of targets) assert.equal(value(el, "--SLM_GradientPosition"), "-50%");
+    frame(1500);
+    frame(2500);
+    for (const el of targets) assert.equal(value(el, "--SLM_GradientPosition"), "100%");
+    frame(0);
+    for (const el of targets) {
+      assert.equal(
+        value(el, "--SLM_GradientPosition"),
+        "-50%",
+        `Simple ${rendering} mode rewinds words and letters after direct gradient writes/removal`
+      );
+    }
+  }
 } finally {
   for (const [key, descriptor] of previousGlobals) {
     if (descriptor) Object.defineProperty(globalThis, key, descriptor);

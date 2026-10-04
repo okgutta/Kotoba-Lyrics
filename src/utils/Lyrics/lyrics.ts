@@ -5,7 +5,7 @@ import { SpotifyPlayer } from "../../components/Global/SpotifyPlayer.ts";
 import { Lyrics } from "./Animator/Main.ts";
 import { PageContainer } from "../../components/Pages/PageView.ts";
 import { Maid } from "../../modules/Maid.ts";
-import { onFrame } from "../../modules/FrameLoop.ts";
+import { onAnimationFrame } from "../AnimationFrameLoop.ts";
 
 export const getLyricsBetweenShow = () => ($minimalLyricsMode.get() ? 5 : 3);
 
@@ -166,12 +166,12 @@ const LyricsInterval = () => {
 // Restart when a container appears; the loop self-stops when it goes away.
 $lyricsContainerExists.listen((exists) => {
   if (exists && stopLyricsFrame === null) {
-    stopLyricsFrame = onFrame(LyricsInterval);
+    stopLyricsFrame = onAnimationFrame(LyricsInterval);
   }
 });
 
 // 共享 FrameLoop（原先独占一条 rAF 链）；容器不存在时首帧自停
-stopLyricsFrame = onFrame(LyricsInterval);
+stopLyricsFrame = onAnimationFrame(LyricsInterval);
 
 // Define proper types for event listener variables
 let LinesEvListenerMaid: Maid | null = null;

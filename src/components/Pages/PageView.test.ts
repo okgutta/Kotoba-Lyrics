@@ -135,6 +135,7 @@ const noopExports: Record<string, string[]> = {
   "experiments.ts": ["ApplyExperimentClasses", "onExperimentChange"],
   "LyricsVirtualizer.ts": ["refreshReadingLayoutLV", "triggerRemeasureLV"],
   "readingLayout.ts": ["applyReadingLayout"],
+  "themeMatcher.ts": ["setStockPlaybarPage"],
 };
 const storeNames = [
   "$updateRequired",
@@ -236,16 +237,28 @@ const fixture = {
 };
 fixture.stores.$translationState.set("unavailable");
 const documentRoot = new ElementFixture();
+const mountObservers = new Set<() => void>();
+const history = { location: { pathname: "/SpicyLyrics" } };
 const context = createContext({
   fixture,
   document: {
+    documentElement: documentRoot,
     createElement() {
       fixture.createdElements++;
       return new ElementFixture();
     },
     querySelector: (selector: string) => documentRoot.querySelector(selector),
   },
-  Spicetify: { Player: { data: null } },
+  Spicetify: { Player: { data: null }, Platform: { History: history } },
+  MutationObserver: class {
+    constructor(private callback: () => void) {}
+    observe() {
+      mountObservers.add(this.callback);
+    }
+    disconnect() {
+      mountObservers.delete(this.callback);
+    }
+  },
   ResizeObserver: class {
     observe() {}
     disconnect() {}
@@ -289,8 +302,13 @@ documentRoot.appendChild(rightViewport);
 
 assert.equal(documentRoot.querySelector(".Root__main-view"), null);
 assert.equal(api.GetPageRoot(), mainViewport);
-await api.default.Open();
-assert.equal(api.default.IsOpened, true, "Opening retries after the main view becomes available");
+for (const callback of mountObservers) callback();
+assert.equal(api.default.IsOpened, true, "Opening retries automatically when the main view mounts");
+assert.equal(mountObservers.size, 0, "A successful mount disconnects the temporary observer");
+assert.equal(
+  (api.PageContainer as unknown as ElementFixture).attributes.get("data-scroll-size-contained"),
+  ""
+);
 assert.equal(fixture.stores.$lyricsContainerExists.get(), true);
 assert.equal((api.PageContainer as unknown as ElementFixture).parentElement, mainViewport);
 assert.equal(leftViewport.children.length, 0);
@@ -311,6 +329,16 @@ assert.equal(mainViewport.style.containerType, "");
 
 mainView.remove();
 assert.equal(api.GetPageRoot(), null, "Sidebar viewports must never become the main host");
+await api.default.Open();
+assert.equal(mountObservers.size, 1);
+history.location.pathname = "/album/example";
+for (const callback of mountObservers) callback();
+assert.equal(mountObservers.size, 0, "Leaving the lyrics route cancels a pending mount");
+assert.equal(api.default.IsOpened, false);
+history.location.pathname = "/SpicyLyrics";
+await api.default.Open();
+await api.default.Destroy();
+assert.equal(mountObservers.size, 0, "Closing an unmounted page cancels the observer");
 const cardHost = new ElementFixture();
 await api.default.Open(cardHost as unknown as HTMLElement, { cardMode: true });
 assert.equal(api.IsCardMode, true);

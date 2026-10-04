@@ -1,6 +1,8 @@
 // deno-lint-ignore-file no-explicit-any
 import GetProgress, { _DEPRECATED___GetProgress } from "../../utils/Gets/GetProgress.ts";
 import { createViewControlTooltip } from "../Utils/ViewControlTooltip.ts";
+import { createTooltip } from "../../utils/tooltip.ts";
+import Global from "./Global.ts";
 
 const GetContentType = (): string => {
   if (Spicetify?.Player?.data?.item?.type) {
@@ -109,7 +111,7 @@ export const SpotifyPlayer = {
     }
   },
   Playbar: (() => {
-    let rightContainer: HTMLElement | null;
+    let rightContainer: HTMLElement | null = null;
     const buttonsStash = new Set<HTMLElement>();
     const MAX_MOUNT_RETRIES = 50;
     const MOUNT_RETRY_DELAY = 300;
@@ -206,18 +208,54 @@ export const SpotifyPlayer = {
       }
     }
 
-    (function waitForPlaybarMounted(attempt = 0) {
-      rightContainer =
-        document.querySelector<HTMLElement>(".main-nowPlayingBar-right > div") ??
-        document.querySelector<HTMLElement>(".main-nowPlayingBar-extraControls");
-      if (!rightContainer) {
-        if (attempt < MAX_MOUNT_RETRIES) {
-          setTimeout(() => waitForPlaybarMounted(attempt + 1), MOUNT_RETRY_DELAY);
-        }
-        return;
+    const controlsSelector =
+      '[data-testid="now-playing-bar"], .Root__now-playing-bar, .main-nowPlayingBar-extraControls, button[data-testid="lyrics-button"], button[data-testid="pip-toggle-button"], button[data-testid="fullscreen-mode-button"]';
+
+    function GetControls(): HTMLElement | null {
+      const playbar = document.querySelector<HTMLElement>(
+        '[data-testid="now-playing-bar"], .Root__now-playing-bar'
+      );
+      const nativeButton = playbar?.querySelector<HTMLElement>(
+        'button[data-testid="lyrics-button"], button[data-testid="pip-toggle-button"], button[data-testid="fullscreen-mode-button"]'
+      );
+      return (
+        nativeButton?.parentElement ??
+        document.querySelector<HTMLElement>(
+          ".main-nowPlayingBar-right > div, .main-nowPlayingBar-extraControls"
+        )
+      );
+    }
+
+    function mountButtons() {
+      rightContainer = GetControls();
+      if (!rightContainer) return;
+      if ([...buttonsStash].some((button) => button.parentElement !== rightContainer)) {
+        rightContainer.prepend(...buttonsStash);
       }
-      rightContainer.prepend(...Array.from(buttonsStash));
-    })();
+      Global.Event.evoke("playbar:controls", rightContainer);
+    }
+
+    // Spotify 1.3.x may mount late or replace the entire control group. Ignore
+    // lyric style changes and only remount when the playbar structure changes.
+    new MutationObserver((records) => {
+      if (
+        records.some(
+          (record) =>
+            record.target === rightContainer ||
+            [...record.addedNodes, ...record.removedNodes].some(
+              (node) =>
+                node instanceof Element &&
+                (node === rightContainer ||
+                  (rightContainer !== null && node.contains(rightContainer)) ||
+                  node.matches(controlsSelector) ||
+                  node.querySelector(controlsSelector))
+            )
+        )
+      ) {
+        mountButtons();
+      }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+    mountButtons();
 
     const widgetStash = new Set<HTMLElement>();
     let nowPlayingWidget: HTMLElement | null;
@@ -247,7 +285,7 @@ export const SpotifyPlayer = {
         this.onClick = onClick;
         this.disabled = disabled;
         this.active = active;
-        this.tippy = (Spicetify as any).Tippy?.(this.element, {
+        this.tippy = createTooltip(this.element, {
           content: label,
           ...(Spicetify as any).TippyProps,
         });
@@ -344,6 +382,6 @@ export const SpotifyPlayer = {
       observer.observe(leftPlayer, { childList: true });
     })();
 
-    return { Button, Widget };
+    return { Button, Widget, GetControls };
   })(),
 };

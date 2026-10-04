@@ -66,6 +66,19 @@
   --SL-LyricsContent_MaskTopPadding: 32px;
 }
 
+/* Keep short popup viewports readable without overlapping top/bottom fades. */
+.spicy-pip-wrapper #SpicyLyricsPage .LyricsContainer .LyricsContent {
+  --ImageMask: linear-gradient(
+    180deg,
+    transparent 0,
+    transparent min(16px, 6%),
+    var(--spice-sidebar) calc(min(64px, 25%) + var(--SL-LyricsContent_MaskTopPadding)),
+    var(--spice-sidebar) calc(100% - min(64px, 25%)),
+    transparent calc(100% - min(16px, 6%)),
+    transparent
+  );
+}
+
 .spicy-pip-wrapper #SpicyLyricsPage .LyricsContainer .LyricsContent:has(.LyricsNotice) {
   -webkit-mask-image: none;
   mask-image: none;
@@ -83,7 +96,7 @@
      narrow), scales with width, and is capped so very wide popups don't end
      up with oversized text. */
   --DefaultLyricsSize: calc(
-    clamp(1.7rem, calc(1cqw * 5.5), 2.6rem) * var(--sl-lyrics-font-scale, 1)
+    clamp(1.2rem, min(max(1.7rem, 5.5vw), 8vh, 8vw), 2.6rem) * var(--sl-lyrics-font-scale, 1)
   );
 }
 

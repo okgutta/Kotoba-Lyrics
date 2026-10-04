@@ -1,7 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 import Session from "../Global/Session.ts";
 import { $updateRequired, requestUpdatePanel } from "../../updater/runtimeState.ts";
-import PageView from "../Pages/PageView.ts";
+import PageView, { PageContainer } from "../Pages/PageView.ts";
 import Fullscreen from "./Fullscreen.ts";
 import { NPVCardOwnsPage, DeRenderNPVCard, RequestNPVCardEvaluate } from "./NPVLyrics.ts";
 
@@ -16,6 +16,29 @@ type PictureInPictureWindow = Window;
 
 let currentPipWindow: PictureInPictureWindow | null = null;
 let pipPageHideHandler: ((event: Event) => void) | null = null;
+
+// Document PiP has no minimum-size option. Restore enough room for the artwork,
+// metadata and a few lyric lines after the native resize gesture settles.
+const PIP_MIN_WIDTH = 260;
+const PIP_MIN_HEIGHT = 180;
+const PIP_MIN_SIZE_SETTLE_MS = 200;
+let pipMinSizeTimer: ReturnType<typeof setTimeout> | null = null;
+
+const EnforcePipMinSize = (pipWindow: Window) => {
+  if (pipWindow.closed) return;
+  const missingWidth = Math.max(0, PIP_MIN_WIDTH - pipWindow.innerWidth);
+  const missingHeight = Math.max(0, PIP_MIN_HEIGHT - pipWindow.innerHeight);
+  if (!missingWidth && !missingHeight) return;
+  pipWindow.resizeTo(pipWindow.outerWidth + missingWidth, pipWindow.outerHeight + missingHeight);
+};
+
+const pipResizeHandler = () => {
+  if (pipMinSizeTimer !== null) clearTimeout(pipMinSizeTimer);
+  pipMinSizeTimer = setTimeout(() => {
+    pipMinSizeTimer = null;
+    if (currentPipWindow) EnforcePipMinSize(currentPipWindow);
+  }, PIP_MIN_SIZE_SETTLE_MS);
+};
 
 export const OpenPopupLyrics = async () => {
   if ($updateRequired.get()) {
@@ -169,18 +192,24 @@ const OpenPopupLyricsFlow = async (depth = 0): Promise<void> => {
 
   pipWindow.document.head.appendChild(additionalStylingElement);
 
+  // The main page may open, or the user may close the popup, while styles load.
+  if ($updateRequired.get() || PageView.IsOpened || pipWindow.closed) {
+    if (!pipWindow.closed) pipWindow.close();
+    currentPipWindow = null;
+    return;
+  }
+
   pipWindow.document.body.innerHTML = `<div class="app-drag-region"></div><div class="spicy-pip-wrapper"></div>`;
-
   const pipWrapper = pipWindow.document.body.querySelector(".spicy-pip-wrapper") as HTMLElement;
+  IsPIP = true;
 
-  if ($updateRequired.get()) {
+  await PageView.Open(pipWrapper);
+  if (!PageView.IsOpened || !pipWrapper.contains(PageContainer)) {
+    IsPIP = false;
     pipWindow.close();
     currentPipWindow = null;
     return;
   }
-  IsPIP = true;
-
-  PageView.Open(pipWrapper);
 
   Fullscreen.Open(true, false);
 
@@ -190,6 +219,8 @@ const OpenPopupLyricsFlow = async (depth = 0): Promise<void> => {
   };
 
   pipWindow.addEventListener("pagehide", pipPageHideHandler);
+  EnforcePipMinSize(pipWindow);
+  pipWindow.addEventListener("resize", pipResizeHandler);
 
   _IsPIP_after = true;
 };
@@ -206,6 +237,11 @@ export const ClosePopupLyrics = async () => {
   if (pipPageHideHandler) {
     pipWindow.removeEventListener("pagehide", pipPageHideHandler);
     pipPageHideHandler = null;
+  }
+  pipWindow.removeEventListener("resize", pipResizeHandler);
+  if (pipMinSizeTimer !== null) {
+    clearTimeout(pipMinSizeTimer);
+    pipMinSizeTimer = null;
   }
 
   pipWindow.close();

@@ -58,6 +58,7 @@ import { createViewControlTooltip } from "../Utils/ViewControlTooltip.ts";
 import { CleanUpIsByCommunity } from "../../utils/Lyrics/Applyer/Credits/ApplyIsByCommunity.tsx";
 import { openSettingsPanel } from "../../utils/settings.ts";
 import Logger from "../../utils/Logger.ts";
+import { setStockPlaybarPage } from "../../utils/themeMatcher.ts";
 import { ApplyExperimentClasses, onExperimentChange } from "../../utils/experiments.ts";
 import {
   refreshReadingLayoutLV,
@@ -128,6 +129,12 @@ export const GetPageRoot = () =>
   document.querySelector<HTMLElement>(".main-view-container .os-host") ??
   document.querySelector<HTMLElement>(".main-view-container .uGZUPBPcDpzSYqKcQT8r > div");
 
+let PageMountObserver: MutationObserver | null = null;
+function cancelPendingPageMount() {
+  PageMountObserver?.disconnect();
+  PageMountObserver = null;
+}
+
 let PageResizeListener: ResizeObserver | null = null;
 export let PageContainer: HTMLElement | null = null;
 export let IsCardMode = false;
@@ -148,11 +155,26 @@ async function OpenPage(
     return OpenPage(AppendTo, options);
   }
 
+  cancelPendingPageMount();
   if (PageView.IsOpened) return;
   // Spotify may not have mounted its main view yet. Leave the page closed so
   // a later request can retry, while explicit card/PiP hosts remain independent.
   const host = AppendTo ?? GetPageRoot();
-  if (!host) return;
+  if (!host) {
+    if (AppendTo === undefined && !options?.cardMode) {
+      PageMountObserver = new MutationObserver(() => {
+        if (Spicetify.Platform.History.location.pathname !== "/SpicyLyrics") {
+          cancelPendingPageMount();
+          return;
+        }
+        if (!GetPageRoot()) return;
+        cancelPendingPageMount();
+        void OpenPage();
+      });
+      PageMountObserver.observe(document.documentElement, { childList: true, subtree: true });
+    }
+    return;
+  }
 
   if ($updateRequired.get()) {
     if (options?.cardMode) return;
@@ -166,6 +188,8 @@ async function OpenPage(
   IsCardMode = !!options?.cardMode;
   const elem = document.createElement("div");
   elem.id = "SpicyLyricsPage";
+  // Word animation must not trigger Spotify's OverlayScrollbars size scan.
+  elem.setAttribute("data-scroll-size-contained", "");
 
   elem.classList.add("SpicyRenderer");
 
@@ -295,6 +319,7 @@ async function OpenPage(
 
   $lyricsContainerExists.set(true);
   PageView.IsOpened = true;
+  setStockPlaybarPage(elem);
 
   if (IsPIP) {
     elem?.classList.add("ForcedCompactMode");
@@ -336,6 +361,7 @@ export function Compactify(Element: HTMLElement | undefined = undefined) {
 }
 
 async function DestroyPage() {
+  cancelPendingPageMount();
   if (!PageView.IsOpened) return;
   pageLogger.debug("Destroying page");
 
@@ -362,6 +388,7 @@ async function DestroyPage() {
   }
 
   PageContainer?.remove();
+  setStockPlaybarPage(null);
   removeLinesEvListener();
   Object.values(Tooltips).forEach((a) => {
     a?.destroy();
