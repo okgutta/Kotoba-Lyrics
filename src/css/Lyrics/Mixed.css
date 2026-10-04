@@ -82,6 +82,20 @@
       calc(var(--gradient-position) + 20% + var(--gradient-offset))
   );
 }
+
+/* Moving words/dots paint their own gradients. A text-clipped background on
+   their parent also paints the glyphs at their original positions, leaving
+   gray copies behind. Musical lines need this for both synced lyric types;
+   ordinary line-synced text still relies on its parent background. */
+#SpicyLyricsPage.SpicyRenderer
+  .LyricsContainer
+  .LyricsContent
+  .SpicyLyricsScrollContainer[data-lyrics-type="Syllable"]
+  .line.Active,
+#SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .line.musical-line.Active {
+  background-image: none;
+}
+
 #SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .line.NotSung,
 #SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .line.NotSung .word,
 #SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .line.NotSung .letter {
