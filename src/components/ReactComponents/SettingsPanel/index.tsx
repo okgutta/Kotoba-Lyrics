@@ -4,7 +4,9 @@ import BackgroundSection from "./BackgroundSection.tsx";
 import CacheSection from "./CacheSections.tsx";
 import DeveloperSection from "./DeveloperSection.tsx";
 import ExperimentsSection from "./ExperimentsSection.tsx";
+import LyricsAppearanceSection from "./LyricsAppearanceSection.tsx";
 import LyricsSection from "./LyricsSection.tsx";
+import PerformanceSection from "./PerformanceSection.tsx";
 import PlaybackSection from "./PlaybackSection.tsx";
 import ServicesSection from "./ServicesSection.tsx";
 import UpdateSection from "./UpdateSection.tsx";
@@ -24,7 +26,6 @@ const SECTIONS = [
   { value: "appearance", label: "外观" },
   { value: "lyrics-display", label: "歌词" },
   { value: "lyrics-service", label: "翻译" },
-  { value: "playback", label: "播放" },
   { value: "cache", label: "缓存" },
   { value: "advanced", label: "高级" },
 ] as const;
@@ -47,26 +48,51 @@ function sectionFor(
   sectionFilter: string,
   openDetail: OpenDetail
 ) {
+  // 分类名也可以搜索；具体设置仍由各分组按名称和说明筛选。
+  const categoryLabel = SECTIONS.find((section) => section.value === value)?.label;
+  const sectionQuery = query.trim() === categoryLabel ? "" : query.trim();
   switch (value) {
     case "appearance":
-      return <BackgroundSection query={query} sectionFilter={sectionFilter} />;
+      return (
+        <>
+          <BackgroundSection query={sectionQuery} sectionFilter={sectionFilter} />
+          <LyricsAppearanceSection query={sectionQuery} sectionFilter={sectionFilter} />
+          <PlaybackSection query={sectionQuery} sectionFilter={sectionFilter} />
+          <ExperimentsSection
+            query={sectionQuery}
+            sectionFilter={sectionFilter}
+            category="appearance"
+          />
+        </>
+      );
     case "lyrics-display":
       return (
-        <LyricsSection query={query} sectionFilter={sectionFilter} onOpenDetail={openDetail} />
+        <LyricsSection
+          query={sectionQuery}
+          sectionFilter={sectionFilter}
+          onOpenDetail={openDetail}
+        />
       );
     case "lyrics-service":
       return (
-        <ServicesSection query={query} sectionFilter={sectionFilter} onOpenDetail={openDetail} />
+        <ServicesSection
+          query={sectionQuery}
+          sectionFilter={sectionFilter}
+          onOpenDetail={openDetail}
+        />
       );
-    case "playback":
-      return <PlaybackSection query={query} sectionFilter={sectionFilter} />;
     case "cache":
-      return <CacheSection query={query} sectionFilter={sectionFilter} />;
+      return <CacheSection query={sectionQuery} sectionFilter={sectionFilter} />;
     case "advanced":
       return (
         <>
-          <ExperimentsSection query={query} sectionFilter={sectionFilter} />
-          <DeveloperSection query={query} sectionFilter={sectionFilter} />
+          <PerformanceSection query={sectionQuery} sectionFilter={sectionFilter} />
+          <ExperimentsSection
+            query={sectionQuery}
+            sectionFilter={sectionFilter}
+            category="advanced"
+          />
+          <DeveloperSection query={sectionQuery} sectionFilter={sectionFilter} />
         </>
       );
   }

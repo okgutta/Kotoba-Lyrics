@@ -8,7 +8,7 @@ import {
 import { $isGlobalNav } from "../../../utils/uiState.ts";
 import { matches, Row, Section, SegmentedControl, Toggle } from "./components.tsx";
 
-const SECTION_NAME = "playback";
+const SECTION_NAME = "appearance";
 const vcPositionOptions = ["Top", "Bottom"];
 const vcPositionLabels = ["上方", "下方"];
 
@@ -26,15 +26,16 @@ export default function PlaybackSection({ query, sectionFilter }: Props) {
 
   if (sectionFilter !== "All" && sectionFilter !== SECTION_NAME) return null;
 
-  const r1 = matches(query, "紧凑模式下锁定媒体框尺寸", "紧凑模式下媒体框保持固定尺寸。");
-  const r2 = matches(query, "时间轴移出媒体框", "把播放进度条从媒体框移到外侧。");
-  const r3 = matches(query, "音量滑杆", "在播放栏显示音量滑杆。");
-  const r4 = matches(query, "歌词控制按钮位置", "歌词控制按钮在播放栏的上下位置。");
+  const layoutQuery = matches(query, "播放布局 播放器布局") ? "" : query;
+  const r1 = matches(layoutQuery, "紧凑模式下锁定媒体框尺寸", "紧凑模式下媒体框保持固定尺寸。");
+  const r2 = matches(layoutQuery, "时间轴移出媒体框", "把播放进度条从媒体框移到外侧。");
+  const r3 = matches(layoutQuery, "音量滑杆", "在播放栏显示音量滑杆。");
+  const r4 = matches(layoutQuery, "歌词控制按钮位置", "歌词控制按钮在播放栏的上下位置。");
 
   if (!r1 && !r2 && !r3 && !r4) return null;
 
   return (
-    <Section title="播放布局">
+    <Section title="播放布局" className="sl-sp-section--appearance">
       {r1 && (
         <Row label="紧凑模式下锁定媒体框尺寸">
           <Toggle checked={lockedMediaBox} onChange={(v) => $lockedMediaBox.set(v)} />

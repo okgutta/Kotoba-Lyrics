@@ -111,7 +111,8 @@ sl-generic-modal.SpicyLyricsModal
 }
 .sl-sp-sidebar-nav {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   flex-shrink: 0;
   gap: 4px;
   padding: 4px;
@@ -772,14 +773,21 @@ sl-generic-modal.SpicyLyricsModal
   }
 }
 
-/* Slider uses the same neutral accent as the player. */
+/* Keep the value and reset beside the rail, with stable space while dragging. */
 .sl-sp-slider {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
   width: 220px;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .sl-sp-slider-track-wrap {
   position: relative;
-  height: 22px;
+  height: 36px;
+  min-width: 0;
   display: flex;
   align-items: center;
 }
@@ -815,9 +823,13 @@ sl-generic-modal.SpicyLyricsModal
   position: absolute;
   inset: 0;
   width: 100%;
+  height: 100%;
   margin: 0;
+  padding: 0;
+  border: 0;
   appearance: none;
   background: none;
+  box-shadow: none;
   cursor: pointer;
 
   &::-webkit-slider-thumb {
@@ -849,22 +861,30 @@ sl-generic-modal.SpicyLyricsModal
 .sl-sp-slider-meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-2);
-  min-height: 18px;
+  min-height: 36px;
 }
 
 .sl-sp-slider-value {
+  box-sizing: border-box;
+  min-width: calc(8ch + 16px);
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-tint-bg);
+  box-shadow: inset 0 0 0 1px var(--slsp-hairline);
   font-size: var(--text-caption-size) !important;
   font-weight: var(--w-semibold);
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .sl-sp-slider-reset {
   border: none;
   background: none;
-  min-height: 28px;
+  min-width: 36px;
+  min-height: 32px;
   padding: 2px 6px;
   font-size: var(--text-caption-size) !important;
   font-weight: var(--w-medium);
@@ -872,8 +892,13 @@ sl-generic-modal.SpicyLyricsModal
   cursor: pointer;
   transition: color 0.15s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     color: #ffffff;
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 
   &:focus-visible {
@@ -888,46 +913,48 @@ sl-generic-modal.SpicyLyricsModal
   pointer-events: none;
 }
 
-/* Reading options align right; number controls keep a stable slot for reset. */
-.sl-sp-section--reading {
+/* Appearance shares one control column; switches keep their compact width. */
+.sl-sp-section--appearance {
   .sl-sp-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 220px);
-    min-height: 58px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 260px);
+    min-height: 56px;
+  }
+
+  .sl-sp-row:has(.sl-sp-toggle) {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .sl-sp-control,
+  .sl-sp-select,
   .sl-sp-segmented,
+  .sl-sp-slider,
   .sl-sp-stepper {
     width: 100%;
     min-width: 0;
+  }
+
+  .sl-sp-control {
+    justify-content: flex-end;
   }
 
   .sl-sp-segmented-item {
     flex: 1;
   }
 
-  .sl-sp-segmented-item--active {
-    box-shadow: none;
-  }
-
-  .sl-sp-row--disabled .sl-sp-segmented {
+  .sl-sp-row--disabled .sl-sp-segmented,
+  .sl-sp-row--disabled .sl-sp-slider {
     opacity: 1;
   }
 }
 
 .sl-sp-stepper {
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
-  align-items: center;
-  gap: 12px;
   width: 220px;
 }
 
 .sl-sp-stepper-field {
-  grid-area: 1 / 2;
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  grid-template-columns: 34px minmax(0, 1fr) 34px 44px;
   align-items: center;
   padding: 2px;
   border-radius: 9px;
@@ -1014,11 +1041,17 @@ sl-generic-modal.SpicyLyricsModal
 }
 
 .sl-sp-stepper-reset {
-  grid-area: 1 / 1;
   min-height: 32px;
-  padding: 0;
+  padding: 0 6px;
+  border-left: 1px solid var(--slsp-hairline);
+  border-radius: 0 7px 7px 0;
   color: var(--color-text-secondary);
   font-size: var(--text-caption-size) !important;
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
 }
 
 /* Action controls. */
@@ -1423,8 +1456,7 @@ sl-generic-modal.SpicyLyricsModal
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .sl-sp-section--reading .sl-sp-row {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 220px);
+  .sl-sp-section--appearance .sl-sp-row {
     align-items: center;
   }
   .sl-sp-detail-footer {
@@ -1443,8 +1475,8 @@ sl-generic-modal.SpicyLyricsModal
   }
 }
 
-@container slsettings (max-width: 380px) {
-  .sl-sp-section--reading .sl-sp-row {
+@container slsettings (max-width: 440px) {
+  .sl-sp-section--appearance .sl-sp-row:not(:has(.sl-sp-toggle)) {
     grid-template-columns: minmax(0, 1fr);
     gap: 6px;
   }
@@ -1573,8 +1605,8 @@ sl-generic-modal.SpicyLyricsModal
 }
 
 .sl-sp-slider-track {
-  background: var(--material-regular-bg);
-  box-shadow: var(--liquid-edge);
+  background: var(--slsp-hairline-strong);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
 .sl-sp-slider-fill {

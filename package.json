@@ -1,6 +1,6 @@
 {
   "name": "kotoba-lyrics",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "description": "为 Spotify 提供逐字同步、翻译和沉浸式歌词显示的 Spicetify 扩展。",
   "homepage": "https://github.com/okgutta/Kotoba-Lyrics#readme",
   "bugs": {

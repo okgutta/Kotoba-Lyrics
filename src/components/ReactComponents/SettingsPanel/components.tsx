@@ -368,22 +368,6 @@ export function NumberStepper({
 
   return (
     <div className="sl-sp-stepper">
-      {value !== defaultValue && (
-        <button
-          type="button"
-          className="sl-sp-stepper-reset"
-          disabled={disabled}
-          aria-describedby={labelId}
-          title={`恢复默认值 ${defaultValue}${unit ?? ""}`}
-          onClick={() => {
-            setDraft(null);
-            onChange(defaultValue);
-            inputRef.current?.focus();
-          }}
-        >
-          重置
-        </button>
-      )}
       <div className="sl-sp-stepper-field">
         <button
           type="button"
@@ -446,6 +430,20 @@ export function NumberStepper({
             <path d="M2 6h8M6 2v8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
         </button>
+        <button
+          type="button"
+          className="sl-sp-stepper-reset"
+          disabled={disabled || value === defaultValue}
+          aria-describedby={labelId}
+          title={`恢复默认值 ${defaultValue}${unit ? ` ${unit}` : ""}`}
+          onClick={() => {
+            setDraft(null);
+            onChange(defaultValue);
+            inputRef.current?.focus();
+          }}
+        >
+          重置
+        </button>
       </div>
     </div>
   );
@@ -496,15 +494,27 @@ export function Slider({
   return (
     <div className={`sl-sp-slider${disabled ? " sl-sp-slider--disabled" : ""}`}>
       <div className="sl-sp-slider-track-wrap">
-        <span className="sl-sp-slider-track" />
+        <span className="sl-sp-slider-track" aria-hidden="true" />
         <span
           className="sl-sp-slider-fill"
+          aria-hidden="true"
           style={{
-            left: posFor(fillFrom),
-            width: `calc(${(fillSpan * 100).toFixed(4)}% - ${(fillSpan * THUMB).toFixed(3)}px)`,
+            // A one-way slider fills from the track edge, not the first thumb center.
+            left: isBipolar ? posFor(fillFrom) : 0,
+            width: isBipolar
+              ? `calc(${(fillSpan * 100).toFixed(4)}% - ${(fillSpan * THUMB).toFixed(3)}px)`
+              : clamped === max
+                ? "100%"
+                : posFor(frac),
           }}
         />
-        {isBipolar && <span className="sl-sp-slider-center" style={{ left: posFor(zeroFrac) }} />}
+        {isBipolar && (
+          <span
+            className="sl-sp-slider-center"
+            style={{ left: posFor(zeroFrac) }}
+            aria-hidden="true"
+          />
+        )}
         <input
           ref={inputRef}
           type="range"
@@ -517,19 +527,20 @@ export function Slider({
           disabled={disabled}
           aria-labelledby={labelId ?? undefined}
           aria-label={labelId ? undefined : `当前值 ${valueLabel}`}
+          aria-valuetext={valueLabel}
         />
       </div>
       <div className="sl-sp-slider-meta">
         <span className="sl-sp-slider-value">{valueLabel}</span>
-        {changed && (
+        {defaultValue !== undefined && (
           <button
             type="button"
             className="sl-sp-slider-reset"
-            disabled={disabled}
-            title={`恢复默认值 ${defaultValue}${unit ?? ""}`}
+            disabled={disabled || !changed}
+            title={`恢复默认值 ${defaultValue}${unit ? ` ${unit}` : ""}`}
             aria-describedby={labelId}
             onClick={() => {
-              onChange(defaultValue!);
+              onChange(defaultValue);
               inputRef.current?.focus();
             }}
           >
