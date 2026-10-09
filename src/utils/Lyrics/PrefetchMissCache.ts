@@ -4,7 +4,7 @@ const DEFAULT_MAX_ENTRIES = 32;
 /**
  * Short-lived record of authoritative LYRIVA misses discovered by prefetching.
  * It prevents the current-track pipeline from immediately repeating the same
- * request while still allowing the normal Genius fallback to run.
+ * request when playback reaches the queued track.
  */
 export class PrefetchMissCache {
   private readonly misses = new Map<string, number>();

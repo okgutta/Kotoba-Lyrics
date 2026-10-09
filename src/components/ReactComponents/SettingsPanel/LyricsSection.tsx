@@ -1,27 +1,24 @@
 import { useStore } from "@nanostores/react";
 import {
   $disableNpvLyrics,
-  $geniusApiToken,
   $hideNpvLyricsWhenUnavailable,
   $playbackOffset,
   $popupLyricsAllowed,
 } from "../../../utils/stores.ts";
-import { matches, NavigationRow, Row, Section, Slider, Toggle } from "./components.tsx";
+import { matches, Row, Section, Slider, Toggle } from "./components.tsx";
 
 const SECTION_NAME = "lyrics-display";
 
 interface Props {
   query: string;
   sectionFilter: string;
-  onOpenDetail: (id: "genius-token") => void;
 }
 
-export default function LyricsSection({ query, sectionFilter, onOpenDetail }: Props) {
+export default function LyricsSection({ query, sectionFilter }: Props) {
   const popupLyricsAllowed = useStore($popupLyricsAllowed);
   const hideNpvLyricsWhenUnavailable = useStore($hideNpvLyricsWhenUnavailable);
   const disableNpvLyrics = useStore($disableNpvLyrics);
   const playbackOffset = useStore($playbackOffset);
-  const geniusApiToken = useStore($geniusApiToken);
 
   if (sectionFilter !== "All" && sectionFilter !== SECTION_NAME) return null;
 
@@ -44,9 +41,8 @@ export default function LyricsSection({ query, sectionFilter, onOpenDetail }: Pr
     "同步校准 歌词同步偏移 播放偏移",
     "以毫秒为单位提前或推迟歌词的时间轴。"
   );
-  const rGenius = matches(query, "Genius 备用歌词 备用歌词来源 备用来源", "API Token 静态歌词");
 
-  if (!rPopup && !rCard && !rHideUnavailable && !rSync && !rGenius) return null;
+  if (!rPopup && !rCard && !rHideUnavailable && !rSync) return null;
 
   return (
     <>
@@ -94,18 +90,6 @@ export default function LyricsSection({ query, sectionFilter, onOpenDetail }: Pr
               />
             </Row>
           )}
-        </Section>
-      )}
-
-      {rGenius && (
-        <Section title="备用来源">
-          <NavigationRow
-            label="Genius 备用歌词"
-            description="可选，补充静态歌词"
-            value={geniusApiToken ? "已配置" : "未配置"}
-            valueState={geniusApiToken ? "ok" : "unset"}
-            onClick={() => onOpenDetail("genius-token")}
-          />
         </Section>
       )}
     </>

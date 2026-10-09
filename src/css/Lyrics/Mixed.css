@@ -476,70 +476,6 @@
   margin: var(--SpicyLyrics-LineSpacing, 1cqw 0);
 }
 
-#SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .SongInfo {
-  /* Sized relative to the parent's (inherited) font-size — see .Credits note. */
-  font-size: 0.35em !important;
-  font-weight: 600;
-  margin: 1cqw 0 0 !important;
-  color: white;
-  scale: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.29cqw;
-}
-
-.spicy-pip-wrapper #SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .SongInfo {
-  font-size: 0.5em !important;
-}
-
-#SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .SongInfo .Uploader,
-#SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .SongInfo .Maker {
-  --font-size: calc(var(--DefaultLyricsSize) * 0.33);
-  font-size: var(--font-size) !important;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-#SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .SongInfo .Uploader img,
-#SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .SongInfo .Maker img {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  margin-left: 0.2cqw;
-  position: relative;
-  top: 6px;
-}
-
-.spicy-pip-wrapper
-  #SpicyLyricsPage.SpicyRenderer
-  .LyricsContainer
-  .LyricsContent
-  .SongInfo
-  .Uploader,
-.spicy-pip-wrapper #SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .SongInfo .Maker {
-  --font-size: calc(var(--DefaultLyricsSize) * 0.45);
-  margin-left: 0.45cqw;
-}
-
-.spicy-pip-wrapper
-  #SpicyLyricsPage.SpicyRenderer
-  .LyricsContainer
-  .LyricsContent
-  .SongInfo
-  .Uploader
-  img,
-.spicy-pip-wrapper
-  #SpicyLyricsPage.SpicyRenderer
-  .LyricsContainer
-  .LyricsContent
-  .SongInfo
-  .Maker
-  img {
-  width: 18px;
-  height: 18px;
-}
-
 #SpicyLyricsPage.SpicyRenderer
   .LyricsContainer
   .LyricsContent
@@ -797,47 +733,14 @@
   font-weight: 600 !important;
 }
 
-#SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .Credits {
-  /* `em` is, by definition, relative to the parent element's font-size. The
-     parent (.SpicyLyricsScrollContainer) inherits font-size: var(--DefaultLyricsSize)
-     from .LyricsContent, so this scales with the lyrics without needing a
-     container-type on the scroll container (which would break its height). */
-  font-size: 0.47em !important;
-  font-weight: 600 !important;
-  opacity: 0.6;
-  margin: 1cqw 0 0 !important;
-  scale: 1;
-  color: white;
-}
-
 #SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .LyricsProvider {
-  /* Sized relative to the parent's (inherited) font-size — see .Credits note. */
+  /* Scale with the scroll container's inherited lyrics font size. */
   font-size: 0.34em !important;
   font-weight: 600 !important;
   opacity: 0.5;
   margin: 0.75cqw 1px 0 !important;
   scale: 1;
   color: white;
-}
-
-#SpicyLyricsPage.SpicyRenderer
-  .LyricsContainer
-  .LyricsContent
-  .SongInfo
-  .song-info-profile-section {
-  font-weight: 700;
-  opacity: 0.55;
-  transition: opacity 0.21s;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-#SpicyLyricsPage.SpicyRenderer
-  .LyricsContainer
-  .LyricsContent
-  .SongInfo
-  .song-info-profile-section:hover {
-  opacity: 1;
 }
 
 #SpicyLyricsPage.SpicyRenderer:not(.NoLineHoverBackground)

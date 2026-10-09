@@ -9,7 +9,6 @@ import {
   $deepSeekModels,
   $deepSeekModelsError,
   $deepSeekModelsLoading,
-  $geniusApiToken,
   $openaiApiKey,
   $openaiModel,
   $translationProvider,
@@ -43,63 +42,6 @@ function DetailActionBar({
       </span>
       <div className="sl-sp-inline-controls sl-sp-detail-actions">{children}</div>
     </>
-  );
-}
-
-export function DetailGeniusToken({ onBack }: { onBack: () => void }) {
-  const geniusApiToken = useStore($geniusApiToken);
-  const [draft, setDraft] = useState(geniusApiToken);
-  const normalizedDraft = draft.trim();
-  const dirty = normalizedDraft !== geniusApiToken;
-
-  return (
-    <DetailShell
-      title="Genius API Token"
-      onBack={onBack}
-      actions={
-        <DetailActionBar dirty={dirty} configured={Boolean(geniusApiToken)}>
-          <button
-            type="button"
-            className="sl-sp-btn sl-sp-btn--primary"
-            disabled={!normalizedDraft || !dirty}
-            onClick={() => {
-              $geniusApiToken.set(normalizedDraft);
-              setDraft(normalizedDraft);
-              notify("已保存 Genius API Token");
-            }}
-          >
-            保存
-          </button>
-          <button
-            type="button"
-            className="sl-sp-btn"
-            disabled={!geniusApiToken && !draft}
-            onClick={() => {
-              $geniusApiToken.set("");
-              setDraft("");
-              notify("已清除 Genius API Token");
-            }}
-          >
-            清除 Token
-          </button>
-        </DetailActionBar>
-      }
-    >
-      <Section>
-        <Row
-          label="Token"
-          description="在 genius.com/api-clients 创建 Client 后获取 Access Token"
-          stacked
-        >
-          <Input
-            type="password"
-            value={draft}
-            placeholder="Genius Access Token"
-            onChange={setDraft}
-          />
-        </Row>
-      </Section>
-    </DetailShell>
   );
 }
 

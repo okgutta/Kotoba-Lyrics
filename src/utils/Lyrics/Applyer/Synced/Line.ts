@@ -20,8 +20,6 @@ import {
 } from "../../lyrics.ts";
 import { CreateLyricsContainer } from "../CreateLyricsContainer.ts";
 import { initLyricsVirtualizer } from "../../LyricsVirtualizer.ts";
-import { ApplyIsByCommunity } from "../Credits/ApplyIsByCommunity.tsx";
-import { ApplyLyricsCredits } from "../Credits/ApplyLyricsCredits.ts";
 import { EmitApply } from "../OnApply.ts";
 import { ApplyLyricsProvider } from "../Credits/ApplyProvider.ts";
 
@@ -39,8 +37,7 @@ interface LyricsData {
   Type: string;
   Content: LyricsLineData[];
   StartTime: number;
-  SongWriters?: string[];
-  source?: "spt" | "spl" | "aml";
+  source?: string;
   classes?: string;
   styles?: Record<string, string>;
 }
@@ -327,9 +324,7 @@ export function ApplyLineLyrics(data: LyricsData, UseRomanized: boolean = false)
     }
   });
 
-  ApplyLyricsCredits(data, LyricsContainer);
   ApplyLyricsProvider(data, LyricsContainer);
-  ApplyIsByCommunity(data, LyricsContainer);
 
   if (LyricsContainerParent) {
     LyricsContainerInstance.Append(LyricsContainerParent);

@@ -1,6 +1,6 @@
 // detect.ts 单元测试（纯逻辑，Node 直接跑）
 //   node --experimental-strip-types src/utils/Lyrics/Translate/detect.test.ts
-import { normalizeLang, isSameLanguage, isTargetChinese } from "./detect.ts";
+import { normalizeLang, isSameLanguage } from "./detect.ts";
 
 let failures = 0;
 let passed = 0;
@@ -40,11 +40,6 @@ check("zh 家族互认 zh-TW/zh-CN", isSameLanguage("zh-TW", "zh-CN") === true);
 check("不同语言 en/ja", isSameLanguage("en", "ja") === false);
 check("一方为空返回 false", isSameLanguage(null, "en") === false);
 check("双方为空返回 false", isSameLanguage("", "") === false);
-
-// ── isTargetChinese ────────────────────────────────────────────────────────
-check("zh-CN 是中文", isTargetChinese("zh-CN") === true);
-check("cmn 是中文", isTargetChinese("cmn") === true);
-check("en 不是中文", isTargetChinese("en") === false);
 
 console.log(`[detect] ${passed} passed, ${failures} failed`);
 if (failures > 0) (globalThis as any).process?.exit?.(1);

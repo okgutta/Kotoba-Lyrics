@@ -31,7 +31,6 @@ import {
   $showVolumeSlider,
   $simpleLyricsMode,
   $skipSpicyFont,
-  $ttmlMakerMode,
   $viewControlsPosition,
 } from "../../utils/stores.ts";
 import Global from "../Global/Global.ts";
@@ -55,7 +54,6 @@ import TransferElement from "../Utils/TransferElement.ts";
 import { IsPIP, _IsPIP_after, ClosePopupLyrics } from "../Utils/PopupLyrics.ts";
 import { NPVCardOwnsPage, DeRenderNPVCard } from "../Utils/NPVLyrics.ts";
 import { createViewControlTooltip } from "../Utils/ViewControlTooltip.ts";
-import { CleanUpIsByCommunity } from "../../utils/Lyrics/Applyer/Credits/ApplyIsByCommunity.tsx";
 import { openSettingsPanel } from "../../utils/settings.ts";
 import Logger from "../../utils/Logger.ts";
 import { setStockPlaybarPage } from "../../utils/themeMatcher.ts";
@@ -380,7 +378,6 @@ async function DestroyPage() {
   PageView.IsOpened = false;
   $lyricsContainerExists.set(false);
   DestroyAllLyricsContainers();
-  CleanUpIsByCommunity();
 
   const legacyPage = document.querySelector<HTMLElement>(".main-view-container .os-host");
   if (legacyPage) {
@@ -417,7 +414,6 @@ function scheduleRemeasure(delay: number): void {
 Global.Event.listen("lyrics:not-apply", () => {
   CleanupScrollEvents();
   LyricsApplied = false;
-  CleanUpIsByCommunity();
 });
 
 Global.Event.listen("lyrics:apply", ({ Type }: { Type: string }) => {
@@ -894,11 +890,6 @@ $viewControlsPosition.listen((v) => {
   if (!PageContainer) return;
   PageContainer.classList.toggle("ViewControlsPosition_Top", v === "Top");
   PageContainer.classList.toggle("ViewControlsPosition_Bottom", v === "Bottom");
-  AppendViewControls(true);
-});
-
-$ttmlMakerMode.listen(() => {
-  if (!PageContainer) return;
   AppendViewControls(true);
 });
 

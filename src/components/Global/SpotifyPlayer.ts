@@ -48,18 +48,6 @@ export const SpotifyPlayer = {
     }
     return "https://images.spikerko.org/SongPlaceholderFull.png";
   },
-  GetCoverFrom: (
-    size: CoverSizes,
-    source: Array<{ url: string; label: string }> | Spicetify.ImagesEntity[]
-  ): string | undefined => {
-    if (source) {
-      if (source.length > 0) {
-        const cover = source?.find((cover) => cover.label === size);
-        return cover?.url ?? "https://images.spikerko.org/SongPlaceholderFull.png";
-      }
-    }
-    return "https://images.spikerko.org/SongPlaceholderFull.png";
-  },
   GetName: (): string | undefined => {
     return Spicetify?.Player?.data?.item?.name;
   },
@@ -82,8 +70,6 @@ export const SpotifyPlayer = {
       Spicetify?.Player?.data?.item?.uri ?? Spicetify?.Player?.data?.track?.uri
     );
   },
-  Pause: Spicetify?.Player?.pause,
-  Play: Spicetify?.Player?.play,
   TogglePlayState: Spicetify?.Player?.togglePlay,
   Skip: {
     Next: Spicetify?.Player?.next,

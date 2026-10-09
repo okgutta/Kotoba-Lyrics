@@ -420,17 +420,7 @@ html.SpicyLyrics_NPVMorph::view-transition-new(spicy-npv-card) {
   padding-top: 24px !important;
 }
 
-/* Credits & community credits slightly bigger than their normal sizing
-   (bases: .Credits 0.47em, .SongInfo 0.35em, .LyricsProvider 0.34em in
-   Mixed.css — all !important, so match with higher specificity). */
-#SpicyLyricsNPVCard #SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .Credits {
-  font-size: 0.62em !important;
-}
-
-#SpicyLyricsNPVCard #SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .SongInfo {
-  font-size: 0.5em !important;
-}
-
+/* Enlarge the provider label from Mixed.css's 0.34em with higher specificity. */
 #SpicyLyricsNPVCard #SpicyLyricsPage.SpicyRenderer .LyricsContainer .LyricsContent .LyricsProvider {
   font-size: 0.45em !important;
 }

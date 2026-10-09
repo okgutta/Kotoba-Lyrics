@@ -25,8 +25,6 @@ import {
 } from "../../lyrics.ts";
 import { CreateLyricsContainer } from "../CreateLyricsContainer.ts";
 import { initLyricsVirtualizer } from "../../LyricsVirtualizer.ts";
-import { ApplyIsByCommunity } from "../Credits/ApplyIsByCommunity.tsx";
-import { ApplyLyricsCredits } from "../Credits/ApplyLyricsCredits.ts";
 import { EmitApply } from "../OnApply.ts";
 import Emphasize from "../Utils/Emphasize.ts";
 import { IsLetterCapable } from "../Utils/IsLetterCapable.ts";
@@ -66,8 +64,7 @@ interface LyricsData {
   Type: string;
   Content: LineData[];
   StartTime: number;
-  SongWriters?: string[];
-  source?: "spt" | "spl" | "aml";
+  source?: string;
   classes?: string;
   styles?: Record<string, string>;
 }
@@ -561,9 +558,7 @@ export function ApplySyllableLyrics(data: LyricsData, UseRomanized: boolean = fa
     }
   });
 
-  ApplyLyricsCredits(data, LyricsContainer);
   ApplyLyricsProvider(data, LyricsContainer);
-  ApplyIsByCommunity(data, LyricsContainer);
 
   if (LyricsContainerParent) {
     LyricsContainerInstance.Append(LyricsContainerParent);

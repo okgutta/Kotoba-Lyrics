@@ -4,14 +4,11 @@
 
 ## 架构总览
 
-Kotoba Lyrics 使用两级歌词来源：
+Kotoba Lyrics 仅通过 **LYRIVA** 获取歌词：使用 `https://api.lyriva.xyz` 的 Unified API，通过 `/lyriva/lyrics` 一次请求获取最终歌词模型。
 
-1. **LYRIVA 主源**：使用 `https://api.lyriva.xyz` 的 Unified API，通过 `/lyriva/lyrics` 一次请求获取最终歌词模型。
-2. **Genius 兜底**：LYRIVA 未命中或暂时不可用时，使用用户在设置中配置的 Genius Access Token 搜索静态歌词；只接受 Matcher 判定为 HIGH/GOOD 的候选。
+LYRIVA 端点支持匿名访问，无需填写歌词 API Key。翻译服务使用各自独立的密钥。
 
-设置页不再提供 NCM、QQ、LRCLIB 或 LYRIVA 地址开关，也无需填写 Lyriva API Key。LYRIVA 端点支持匿名访问；扩展的可选 Genius Token 仍可在设置中配置，翻译服务使用各自独立的密钥。
-
-## LYRIVA 主源
+## LYRIVA 歌词接口
 
 ```text
 GET https://api.lyriva.xyz/lyriva/lyrics
@@ -66,28 +63,14 @@ X-Client-Name: Kotoba Lyrics
 
 LYRIVA 歌词请求不携带 API Key、`Authorization` 或 Cookie。扩展优先从 Spotify 直接请求 API；如果服务端未允许 `https://xpui.app.spotify.com` Origin，则匿名回退到 Spicetify CORS 代理。翻译服务的认证不受此变更影响。
 
-## Genius 兜底
-
-```text
-搜索：GET https://api.genius.com/search?q={kw}&access_token={TOKEN}
-歌词：GET https://genius.com/songs/<id>/embed.js
-```
-
-Genius Token 在 `genius.com/api-clients` 创建，并在设置面板中填写。歌词来自 Genius 静态歌词页面；客户端会清理段落标记、解码 embed.js 中的 JSON 字符串，并尝试多个高可信候选。
-
-Genius 请求会区分以下状态：
-
-- 未配置 Token：跳过 Genius 兜底
-- 认证失败/限流/服务端错误：记录为可重试失败，不写 NO_LYRICS 负缓存
-- 当前候选无可用歌词：继续尝试下一个合格候选
-
 ## 缓存与竞态保护
 
-- 歌词缓存 key 为 Spotify track ID，模型同时保存完整 Spotify URI 与 Matcher 信息。
+- 歌词缓存 key 为 Spotify track ID，模型同时保存完整 Spotify URI 与歌曲匹配信息。
+- 仅复用来源为 LYRIVA、歌曲身份一致且匹配等级有效的歌词缓存；旧来源的缓存会重新获取。
 - 客户端启动和切歌时会在歌词页外预取当前歌曲；打开歌词页时优先使用内存缓存，避免再次等待网络。
 - 请求使用 generation + `AbortController` 保护；切歌、关闭页面或新请求开始时，旧请求不能更新当前页面、全局 store 或缓存。
 - `spotify:local:*`、非 track URI 和格式错误 URI 不会访问缓存或远端来源。
-- LYRIVA 明确无歌词、Genius 未配置或确认没有合格结果时，允许写入 NO_LYRICS 负缓存；来源认证失败、限流或暂时不可用不写负缓存。
+- 仅在 LYRIVA 返回明确的 `not-found` 结果时写入 `NO_LYRICS` 负缓存；网络错误、限流、服务暂时不可用、响应解析失败或缺少 `data` 时作为可重试失败处理，不写负缓存。
 - 缓存模型会在渲染前进行运行时结构校验。
 
 ## 翻译

@@ -106,9 +106,6 @@ function migrateData() {
     settings["popupLyricsAllowed"] = !disablePopup;
   }
 
-  // ttmlMakerMode is on by default and no longer user-toggleable, so the old
-  // "devMode" key is intentionally not migrated into it.
-
   const uiState: Record<string, any> = {};
   for (const key of OLD_UI_STATE_KEYS) {
     const val = readOld(key);

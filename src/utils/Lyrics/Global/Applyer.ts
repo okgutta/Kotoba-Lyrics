@@ -23,7 +23,6 @@ import {
   resetTranslationForTrack,
 } from "../Translate/index.ts";
 import PageView, { PageContainer } from "../../../components/Pages/PageView.ts";
-import { CleanUpIsByCommunity } from "../Applyer/Credits/ApplyIsByCommunity.tsx";
 import { IsCompactMode } from "../../../components/Utils/CompactMode.ts";
 import Fullscreen from "../../../components/Utils/Fullscreen.ts";
 import { SpotifyPlayer } from "../../../components/Global/SpotifyPlayer.ts";
@@ -70,8 +69,6 @@ export default async function ApplyLyrics(
   ClearLyricsContentArrays();
   ClearScrollSimplebar();
   ClearLyricsPageContainer();
-
-  CleanUpIsByCommunity();
 
   let noticeContent: string | null = null;
   let noticeDetail: string | null = null;

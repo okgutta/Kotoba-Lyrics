@@ -12,8 +12,6 @@ import isRtl from "../isRtl.ts";
 import { LyricsObject, type LyricsStatic, setRomanizedStatus } from "../lyrics.ts";
 import { CreateLyricsContainer } from "./CreateLyricsContainer.ts";
 import { initLyricsVirtualizer } from "../LyricsVirtualizer.ts";
-import { ApplyIsByCommunity } from "./Credits/ApplyIsByCommunity.tsx";
-import { ApplyLyricsCredits } from "./Credits/ApplyLyricsCredits.ts";
 import { EmitApply } from "./OnApply.ts";
 import { ApplyLyricsProvider } from "./Credits/ApplyProvider.ts";
 
@@ -30,7 +28,7 @@ export interface StaticLyricsData {
   offline?: boolean;
   classes?: string;
   styles?: StyleProperties;
-  source?: "spt" | "spl" | "aml";
+  source?: string;
 }
 
 /**
@@ -93,9 +91,7 @@ export function ApplyStaticLyrics(data: StaticLyricsData, UseRomanized: boolean 
     lineElements.push(lineElem);
   });
 
-  ApplyLyricsCredits(data, LyricsContainer);
   ApplyLyricsProvider(data, LyricsContainer);
-  ApplyIsByCommunity(data, LyricsContainer);
   if (LyricsContainerParent) {
     LyricsContainerInstance.Append(LyricsContainerParent);
   }

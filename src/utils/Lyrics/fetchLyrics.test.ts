@@ -51,10 +51,16 @@ const target: TargetTrack = { uri, title: "Fixture", artists: ["Artist"], durati
 function model(text: string, processed = true): LyricsPayload {
   return {
     Type: "Static",
+    source: "lyriva",
     uri,
     Lines: [{ Text: text }],
     _spicyLyricsProcessed: processed,
-    matchInfo: { level: "HIGH", targetTitle: target.title, targetArtists: target.artists },
+    matchInfo: {
+      level: "HIGH",
+      targetTitle: target.title,
+      targetArtists: target.artists,
+      source: "lyriva",
+    },
   } as LyricsPayload;
 }
 function entry(lyrics: LyricsPayload): LyricsCacheEntry {
@@ -90,7 +96,7 @@ const bundle = await build({
         builder.onResolve(
           {
             filter:
-              /\/(?:Defaults|stores|SpotifyPlayer|PageView|ProcessLyrics|Logger|Store|lyriva|genius|Global|diagnostics|runtimeState)\.ts$/,
+              /\/(?:Defaults|stores|SpotifyPlayer|PageView|ProcessLyrics|Logger|Store|lyriva|Global|diagnostics|runtimeState)\.ts$/,
           },
           (args) => ({ path: args.path.split("/").pop()!, namespace: "pipeline-fixture" })
         );
@@ -108,8 +114,6 @@ const bundle = await build({
               "export default class Logger { debug() {} info() {} warn() {} error() {} }",
             "Store.ts": "export const GetExpireStore = () => fixture.cache;",
             "lyriva.ts": "export const tryLyrivaLyrics = (...args) => fixture.source(...args);",
-            "genius.ts":
-              "export const geniusProvider = { search: async () => [], fetchLyrics: async () => null };",
             "Global.ts": "export default { Event: { evoke() {} } };",
             "diagnostics.ts":
               "export function recordCacheDiagnostic() {} export function recordCurrentDiagnostic() {} export function recordLyrivaResult() {}",
@@ -220,6 +224,27 @@ try {
     app.cancelLyricsFetch();
   }
 
+  // Retired sources must not survive in memory/local caches or suppress a
+  // queued-track lookup; valid LYRIVA caches above still avoid a request.
+  for (const operation of ["memory", "local", "prefetch"]) {
+    const { app, fixture, stores, items, calls } = await createPipeline();
+    const legacy = entry(model("retired-source"));
+    legacy.model!.source = "genius";
+    legacy.matchInfo!.source = "genius";
+    if (operation === "memory") stores.$currentLyricsData.set(JSON.stringify(legacy.model));
+    else items.set("fixture", legacy);
+
+    fixture.sourceResult = async () => ({ kind: "ok", model: model("current-source", false) });
+    if (operation === "prefetch") assert.equal(await app.prefetchLyrics(target), "fetched");
+    else assert.equal(textOf(await app.default(uri)), "current-source");
+    assert.equal(calls.length, 1, `${operation}: retired lyrics must be refreshed`);
+    await until(
+      () => items.get("fixture")?.matchInfo?.source === "lyriva",
+      `${operation}: current lyrics were not persisted`
+    );
+    app.cancelLyricsFetch();
+  }
+
   // Both normal playback and prefetch must recover without a manual cache
   // clear. Legacy three-day misses have no timestamp and expire on upgrade.
   for (const kind of ["expired", "legacy", "memory-only"]) {
@@ -245,11 +270,13 @@ try {
   }
 
   {
-    const { app, fixture, items } = await createPipeline();
+    const { app, fixture, items, calls, stores } = await createPipeline();
     fixture.sourceResult = async () => ({ kind: "not-found" });
     const before = Date.now();
     assert.equal((await app.default(uri))?.[0], "lyrics-not-found");
     assert.ok(items.get("fixture")!.notFoundCachedAt! >= before);
+    assert.equal(calls.length, 1, "A LYRIVA miss completes without another source lookup");
+    assert.equal(stores.$currentlyFetching.get(), false);
     app.cancelLyricsFetch();
   }
 

@@ -1,23 +1,13 @@
 /// <reference types="node" />
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  buildMarkerPayload,
-  parseMarkedResponse,
-  parseMarkedResponsePartial,
-} from "./translationProtocol.ts";
+import { buildMarkerPayload, parseMarkedResponsePartial } from "./translationProtocol.ts";
 
 test("markers keep line identity regardless of response order", () => {
-  assert.deepEqual(parseMarkedResponse("[[SPICY_TR_a_1]]二\n[[SPICY_TR_a_0]]一", 2, "a"), [
+  assert.deepEqual(parseMarkedResponsePartial("[[SPICY_TR_a_1]]二\n[[SPICY_TR_a_0]]一", 2, "a"), [
     "一",
     "二",
   ]);
-});
-
-test("strict parsing rejects duplicate or missing markers", () => {
-  assert.equal(parseMarkedResponse("[[SPICY_TR_a_0]]一\n[[SPICY_TR_a_0]]二", 2, "a"), null);
-  assert.equal(parseMarkedResponse("[[SPICY_TR_a_0]]一", 2, "a"), null);
-  assert.equal(parseMarkedResponse("[[SPICY_TR_a_0]]一\n[[SPICY_TR_a_5]]二", 2, "a"), null);
 });
 
 test("partial parsing keeps recovered lines and blanks the missing ones", () => {

@@ -15,7 +15,6 @@ import { ProjectName } from "../../../../project/config.ts";
 import {
   DetailCustomConfig,
   DetailDeepSeekKey,
-  DetailGeniusToken,
   DetailTranslationLanguage,
   DetailOpenAIConfig,
   DetailTranslationModel,
@@ -32,7 +31,6 @@ const SECTIONS = [
 
 type SectionValue = (typeof SECTIONS)[number]["value"];
 type DetailId =
-  | "genius-token"
   | "translation-lang"
   | "deepseek-key"
   | "openai-key"
@@ -66,13 +64,7 @@ function sectionFor(
         </>
       );
     case "lyrics-display":
-      return (
-        <LyricsSection
-          query={sectionQuery}
-          sectionFilter={sectionFilter}
-          onOpenDetail={openDetail}
-        />
-      );
+      return <LyricsSection query={sectionQuery} sectionFilter={sectionFilter} />;
     case "lyrics-service":
       return (
         <ServicesSection
@@ -102,8 +94,6 @@ function DetailPage({ id, onBack }: { id: DetailId; onBack: () => void }) {
   switch (id) {
     case "updates":
       return <UpdateDetails onBack={onBack} />;
-    case "genius-token":
-      return <DetailGeniusToken onBack={onBack} />;
     case "translation-lang":
       return <DetailTranslationLanguage onBack={onBack} />;
     case "deepseek-key":

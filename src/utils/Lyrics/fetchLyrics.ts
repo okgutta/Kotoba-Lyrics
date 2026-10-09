@@ -8,16 +8,12 @@ import Logger from "../Logger.ts";
 import { GetExpireStore } from "../../modules/Store.ts";
 import { normalizeText } from "../ncm/similarity.ts";
 import {
-  matchCandidate,
   normalizeTitle,
-  rankMatch,
-  type Candidate,
   type LyricsPayload,
   type MatchLevel,
   type TargetTrack,
 } from "./matcher.ts";
 import { tryLyrivaLyrics, type LyrivaResult } from "./lyriva.ts";
-import { geniusProvider } from "./providers/genius.ts";
 import Global from "../../components/Global/Global.ts";
 import { PrefetchMissCache } from "./PrefetchMissCache.ts";
 import { hasFreshLyricsMiss } from "./negativeLyricsCache.ts";
@@ -185,9 +181,9 @@ function verifyIdentityOnly(
   return true;
 }
 
-/** 缓存的匹配信息是否仍与当前曲目一致且达到可采信等级（防止旧错误匹配/旧结构被放行） */
+/** 仅复用 LYRIVA 的有效缓存；旧来源的歌词需重新获取。 */
 function verifyMatchInfo(mi: Partial<MatchInfo> | null | undefined, target: TargetTrack): boolean {
-  if (!mi) return false;
+  if (!mi || mi.source !== "lyriva") return false;
   if (!verifyIdentityOnly(mi, target)) return false;
   if (mi.level !== "HIGH" && mi.level !== "GOOD") return false;
   return true;
@@ -733,7 +729,7 @@ async function fetchLyricsInner(
 
   if (!keepNotice) ShowLoaderContainer();
 
-  // ===== 主源：LYRIVA API（完全替换内置多源搜索 → Matcher → 取词链） =====
+  // ===== 歌词来源：LYRIVA API =====
   const requestStartedAt = performance.now();
   let result: LyrivaResult;
   const reusedPrefetchMiss = !forceRefresh && recentLyrivaPrefetchMisses.has(uri);
@@ -758,33 +754,16 @@ async function fetchLyricsInner(
     return null;
   }
 
-  // ===== 兜底：Genius 静态词（LYRIVA 未命中时才走；命中则跳过） =====
-  let fallback: GeniusFallbackResult | null = null;
-  if (result.kind !== "ok") {
-    fallback = await tryGeniusFallback(target, signal);
-    if (!isActiveRequest(gen, uri, signal)) {
-      return null;
-    }
-    if (fallback.kind === "hit") {
-      lyricsLogger.info(
-        "🎯",
-        `Genius 兜底命中: ${fallback.matchInfo.candidateTitle} — ${fallback.matchInfo.candidateArtists.join(", ")} (${fallback.matchInfo.level})`
-      );
-    }
-  }
-
-  const fallbackHit = fallback?.kind === "hit" ? fallback : null;
-  if (result.kind === "ok" || fallbackHit) {
-    const model = result.kind === "ok" ? result.model : fallbackHit!.model;
-    if (!isActiveRequest(gen, uri, signal)) return null;
+  if (result.kind === "ok") {
+    const model = result.model;
     $currentLyricsData.set(JSON.stringify(model));
     presentLyrics(model, uri, gen);
     scheduleLyricsFinalization(model, trackId, uri, gen, signal);
     recordCurrentDiagnostic({
       level: "success",
       title: "歌词已就绪",
-      detail: result.kind === "ok" ? "LYRIVA 返回有效歌词" : "LYRIVA 未命中，Genius 兜底成功",
-      source: result.kind === "ok" ? "LYRIVA" : "Genius",
+      detail: "LYRIVA 返回有效歌词",
+      source: "LYRIVA",
       durationMs: requestDuration,
       uri,
       track: label,
@@ -793,10 +772,7 @@ async function fetchLyricsInner(
   }
 
   // ===== 权威无歌词 → NO_LYRICS 负缓存（身份限定，防旧错误负缓存误伤） =====
-  // LYRIVA's not-found response is authoritative. Genius is only an optional
-  // positive fallback; if it is unavailable, do not turn a confirmed miss
-  // into an unknown-error that exposes a pointless retry button.
-  if (result.kind === "not-found" && fallback?.kind !== "hit") {
+  if (result.kind === "not-found") {
     if (LyricsStore) {
       try {
         const notFoundEntry = {
@@ -822,8 +798,8 @@ async function fetchLyricsInner(
     recordCurrentDiagnostic({
       level: "warning",
       title: "当前歌曲无歌词",
-      detail: "LYRIVA 与 Genius 均未找到匹配歌词",
-      source: "歌词来源",
+      detail: "LYRIVA 未找到匹配歌词",
+      source: "LYRIVA",
       durationMs: requestDuration,
       uri,
       track: label,
@@ -833,111 +809,20 @@ async function fetchLyricsInner(
 
   // ===== unavailable（限流、超时、服务端）=====
   // 不写负缓存：下首歌或重试仍有机会成功（避免把瞬时故障固化为「无歌词」）。
-  // Genius 兜底也未命中才会走到这里。
-  if (result.kind === "unavailable") {
-    lyricsLogger.warn(`LYRIVA 不可用：${result.reason}`);
-  } else {
-    lyricsLogger.warn("歌词来源均未返回可用歌词");
-  }
+  lyricsLogger.warn(`LYRIVA 不可用：${result.reason}`);
   HideLoaderContainer();
   $currentlyFetching.set(false);
   recordCurrentDiagnostic({
     level: "error",
     title: "歌词获取失败",
-    detail: result.kind === "unavailable" ? result.reason : "歌词来源暂时不可用",
-    source: "歌词来源",
+    detail: result.reason,
+    source: "LYRIVA",
     durationMs: requestDuration,
     uri,
     track: label,
   });
-  context.failure =
-    result.kind === "unavailable" ? classifyLyricsFailure(result.reason) : "service";
+  context.failure = classifyLyricsFailure(result.reason);
   return ["unknown-error", 500];
-}
-
-/**
- * Genius 兜底：LYRIVA 未命中（无歌词/服务不可用）时的静态歌词备选。
- * 只采信 Matcher 判定 HIGH/GOOD 且未被拒的候选——错词比没词更糟。
- * 未配置 Token 时 geniusProvider.search 直接返回空，等价于无兜底。
- */
-type GeniusFallbackResult =
-  | { kind: "hit"; model: LyricsPayload; matchInfo: MatchInfo }
-  | { kind: "miss" }
-  | { kind: "unavailable" };
-
-const GENIUS_FALLBACK_TIMEOUT_MS = 12_000;
-const GENIUS_MAX_FETCH_CANDIDATES = 2;
-
-async function tryGeniusFallback(
-  target: TargetTrack,
-  signal?: AbortSignal
-): Promise<GeniusFallbackResult> {
-  const controller = new AbortController();
-  let timedOut = false;
-  const timeout = setTimeout(() => {
-    timedOut = true;
-    controller.abort();
-  }, GENIUS_FALLBACK_TIMEOUT_MS);
-  const onAbort = () => controller.abort();
-  if (signal?.aborted) {
-    controller.abort();
-  } else {
-    signal?.addEventListener("abort", onAbort, { once: true });
-  }
-
-  try {
-    let cands: Candidate[] = [];
-    try {
-      cands = await geniusProvider.search(target, controller.signal);
-    } catch (err) {
-      if (signal?.aborted) throw err;
-      if (timedOut) {
-        lyricsCacheLogger.debug("Genius 兜底超过总时限");
-      } else {
-        lyricsCacheLogger.debug("Genius 兜底搜索失败", err);
-      }
-      return { kind: "unavailable" };
-    }
-    if (controller.signal.aborted) return { kind: "unavailable" };
-    if (!cands.length) return { kind: "miss" };
-
-    const ranked = cands
-      .map((cand) => ({ cand, match: matchCandidate(target, cand) }))
-      .filter(({ match }) => !match.rejected && (match.level === "HIGH" || match.level === "GOOD"))
-      .sort((a, b) => rankMatch(b.match) - rankMatch(a.match))
-      .slice(0, GENIUS_MAX_FETCH_CANDIDATES);
-
-    for (const candidate of ranked) {
-      let model: LyricsPayload | null;
-      try {
-        model = await geniusProvider.fetchLyrics(candidate.cand, controller.signal);
-      } catch (error) {
-        if (signal?.aborted) throw error;
-        if (timedOut) return { kind: "unavailable" };
-        lyricsCacheLogger.debug("Genius 兜底候选抓取失败", error);
-        continue;
-      }
-      if (controller.signal.aborted) return { kind: "unavailable" };
-      if (!model) continue;
-      const matchInfo: MatchInfo = {
-        level: candidate.match.level,
-        confidence: candidate.match.confidence,
-        targetTitle: target.title,
-        targetArtists: target.artists,
-        candidateTitle: candidate.cand.title,
-        candidateArtists: candidate.cand.artists,
-        source: "genius",
-        savedAt: Date.now(),
-      };
-      model.uri = target.uri;
-      model.matchInfo = matchInfo;
-      return { kind: "hit", model, matchInfo };
-    }
-    return { kind: "miss" };
-  } finally {
-    clearTimeout(timeout);
-    signal?.removeEventListener("abort", onAbort);
-  }
 }
 
 let ContainerShowLoaderTimeout: ReturnType<typeof setTimeout> | null = null;

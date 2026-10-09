@@ -30,9 +30,15 @@ const _settings: Record<string, any> = migrateKeys(
   saveSettingsBlob
 );
 
-// Lyrics are now public; discard the obsolete user-provided credential.
-if (Object.hasOwn(_settings, "lyrivaApiKey")) {
+// Discard settings left by retired lyric sources and author tools.
+if (
+  Object.hasOwn(_settings, "lyrivaApiKey") ||
+  Object.hasOwn(_settings, "geniusApiToken") ||
+  Object.hasOwn(_settings, "ttmlMakerMode")
+) {
   delete _settings.lyrivaApiKey;
+  delete _settings.geniusApiToken;
+  delete _settings.ttmlMakerMode;
   saveSettingsBlob(_settings);
 }
 
@@ -81,7 +87,6 @@ export const $popupLyricsAllowed = (() => {
   return store;
 })();
 export const $viewControlsPosition = persistAtom<string>("viewControlsPosition", "Top");
-export const $ttmlMakerMode = persistAtom<boolean>("ttmlMakerMode", true);
 export const $developerMode = persistAtom<boolean>("developerMode", false);
 export const $timelineOutsideMediaContent = persistAtom<boolean>(
   "timelineOutsideMediaContent",
@@ -123,8 +128,6 @@ export const $openaiModel = persistAtom<string>("openaiModel", "gpt-4o-mini");
 export const $customApiBaseUrl = persistAtom<string>("customApiBaseUrl", "");
 export const $customApiKey = persistAtom<string>("customApiKey", "");
 export const $customApiModel = persistAtom<string>("customApiModel", "");
-// Genius API Access Token（用户自填；不再硬编码进客户端 JS）
-export const $geniusApiToken = persistAtom<string>("geniusApiToken", "");
 
 // Version atom — NOT persisted, set once at startup
 export const $spicyLyricsVersion = atom<string>(

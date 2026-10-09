@@ -69,8 +69,3 @@ export function isSameLanguage(a?: string | null, b?: string | null): boolean {
   if (na === nb) return true;
   return na.startsWith("zh") && nb.startsWith("zh");
 }
-
-/** 目标语言是否是中文（用于「保留 provider 自带的中文译文」判断） */
-export function isTargetChinese(targetLang: string): boolean {
-  return normalizeLang(targetLang).startsWith("zh");
-}

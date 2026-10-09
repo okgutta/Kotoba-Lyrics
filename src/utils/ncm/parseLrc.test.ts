@@ -1,6 +1,6 @@
-// parseLrc / findNear 单元测试（纯逻辑，无 Spicetify 依赖，Node 直接跑）
+// parseLrc 单元测试（纯逻辑，无 Spicetify 依赖，Node 直接跑）
 //   node --experimental-strip-types src/utils/ncm/parseLrc.test.ts
-import { parseLrc, findNear } from "./parseLrc.ts";
+import { parseLrc } from "./parseLrc.ts";
 
 let failures = 0;
 let passed = 0;
@@ -86,20 +86,6 @@ function check(name: string, cond: boolean, detail?: unknown): void {
 
 {
   check("空输入返回空数组", parseLrc("").length === 0);
-}
-
-// ── findNear：最近匹配 + 容差 ───────────────────────────────────────────────
-{
-  const table = [
-    { t: 1000, text: "one" },
-    { t: 2000, text: "two" },
-    { t: 3000, text: "three" },
-  ];
-  check("精确命中", findNear(table, 2000) === "two");
-  check("容差内就近", findNear(table, 2050) === "two");
-  check("边界内(600ms)", findNear(table, 2550) === "three" || findNear(table, 2550) === "two"); // 550/450 最近为 three? |3000-2550|=450 < |2000-2550|=550 → three
-  check("超出容差返回空", findNear(table, 21000) === "");
-  check("空表返回空", findNear([], 1000) === "");
 }
 
 console.log(`[parseLrc] ${passed} passed, ${failures} failed`);

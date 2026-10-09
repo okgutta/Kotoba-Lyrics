@@ -20,18 +20,8 @@ export function buildMarkerPayload(lines: string[], nonce: string): string {
   return lines.map((line, i) => `${MARKER_PREFIX}${nonce}_${i}]]${line}`).join("\n");
 }
 
-export function parseMarkedResponse(
-  text: string,
-  expectedCount: number,
-  nonce: string
-): string[] | null {
-  const byIndex = parseMarkedResponsePartial(text, expectedCount, nonce);
-  if (!byIndex) return null;
-  return byIndex.every((line) => line !== "") ? byIndex : null;
-}
-
 /**
- * 与 parseMarkedResponse 相同的按标记定位，但允许部分标记缺失：
+ * 按标记恢复行序，允许部分标记缺失：
  * 缺失的位置返回空串，交由调用方定点补译，而不是整块作废。
  * 标记重复或下标越界仍视为不可信响应，返回 null。
  */

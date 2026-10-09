@@ -11,16 +11,6 @@ type ModalDisplayOptions = {
   modalId?: string | null;
 };
 
-type ModalTransitionOptions = {
-  content: any;
-  onClose?: (() => void) | null;
-  closeHandler?: (() => void) | null;
-  /** Optional class appended to `.sl-modal`. Replaces any previously set modalId class. */
-  modalId?: string | null;
-  /** Optional new header title. Omit to keep the current one. */
-  title?: string | null;
-};
-
 /** Escape text interpolated into the modal's innerHTML template. */
 const escapeHtml = (value: string): string =>
   value.replace(
@@ -30,7 +20,6 @@ const escapeHtml = (value: string): string =>
 
 class _HTMLGenericModal extends HTMLElement {
   private _onClose: (() => void) | null;
-  private _currentModalId: string | null;
   private _returnFocus: HTMLElement | null;
   // Bumped on every hide()/display() so a pending hide's delayed removal
   // can detect that a newer display took over the element.
@@ -40,7 +29,6 @@ class _HTMLGenericModal extends HTMLElement {
     super();
     this.classList.add("SpicyLyricsModal");
     this._onClose = null;
-    this._currentModalId = null;
     this._returnFocus = null;
     this._hideToken = 0;
   }
@@ -82,14 +70,10 @@ class _HTMLGenericModal extends HTMLElement {
 
   private _applyModalId(modalId: string | null | undefined): void {
     const modalEl = this.querySelector(".sl-modal");
-    if (this._currentModalId && modalEl) {
-      modalEl.classList.remove(this._currentModalId);
-    }
     const nextId = typeof modalId === "string" && modalId.length > 0 ? `slmodal-${modalId}` : null;
     if (nextId && modalEl) {
       modalEl.classList.add(nextId);
     }
-    this._currentModalId = nextId;
   }
 
   hide(): void {
@@ -97,7 +81,6 @@ class _HTMLGenericModal extends HTMLElement {
     const capturedOnClose = this._onClose;
     const returnFocus = this._returnFocus;
     this._onClose = null;
-    this._currentModalId = null;
     this._returnFocus = null;
     const _removeFromDom = (timeoutDuration: number) => {
       setTimeout(() => {
@@ -125,42 +108,6 @@ class _HTMLGenericModal extends HTMLElement {
       _removeFromDom(0.22 * 1000 + 30);
     } else {
       _removeFromDom(0);
-    }
-  }
-
-  /**
-   * Instantly swap modal content without hiding/re-animating.
-   * Use for modal-to-modal transitions where the frame should stay visible.
-   */
-  transition({
-    content,
-    onClose = null,
-    closeHandler = null,
-    modalId = null,
-    title = null,
-  }: ModalTransitionOptions): void {
-    this._hideToken++;
-    if (typeof this._onClose === "function") {
-      this._onClose();
-    }
-    this._onClose = onClose;
-    const closeButton = this.querySelector(".sl-modal-close-btn");
-    if (closeButton) {
-      (closeButton as HTMLButtonElement).onclick = closeHandler ?? this.hide.bind(this);
-    }
-    if (typeof title === "string") {
-      const titleEl = this.querySelector(".sl-modal-title");
-      if (titleEl) titleEl.textContent = title;
-    }
-    this._applyModalId(modalId);
-    const main = this.querySelector("main");
-    if (main) {
-      main.innerHTML = "";
-      if (typeof content === "string") {
-        main.innerHTML = content;
-      } else if (content instanceof Node) {
-        main.append(content);
-      }
     }
   }
 
@@ -199,8 +146,6 @@ class _HTMLGenericModal extends HTMLElement {
       this._onClose();
     }
     this._onClose = onClose;
-    // Reset tracked modalId since innerHTML below replaces the previous `.sl-modal` element.
-    this._currentModalId = null;
     const safeTitle = escapeHtml(title);
     this.innerHTML = `
 <div class="sl-modal-overlay sl-modal-overlay-animated" style="z-index: 100;">

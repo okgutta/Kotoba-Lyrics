@@ -172,7 +172,7 @@ const bundle = await build({
         builder.onResolve(
           {
             filter:
-              /\/(?:stores|readingPreferences|PageView|Styles|ScrollSimplebar|lyrics|CreateLyricsContainer|LyricsVirtualizer|ApplyIsByCommunity|ApplyLyricsCredits|ApplyProvider|OnApply)\.tsx?$/,
+              /\/(?:stores|readingPreferences|PageView|Styles|ScrollSimplebar|lyrics|CreateLyricsContainer|LyricsVirtualizer|ApplyProvider|OnApply)\.tsx?$/,
           },
           (args) => ({ path: args.path.split("/").pop()!, namespace: "renderer-fixture" })
         );
@@ -192,8 +192,6 @@ const bundle = await build({
             "CreateLyricsContainer.ts":
               "export const CreateLyricsContainer = host.createContainer;",
             "LyricsVirtualizer.ts": "export const initLyricsVirtualizer = host.mountVirtualLines;",
-            "ApplyIsByCommunity.tsx": "export function ApplyIsByCommunity() {}",
-            "ApplyLyricsCredits.ts": "export function ApplyLyricsCredits() {}",
             "ApplyProvider.ts": "export function ApplyLyricsProvider() {}",
             "OnApply.ts": "export function EmitApply() {}",
             // These are live ESM bindings shared by Syllable and Emphasize. A

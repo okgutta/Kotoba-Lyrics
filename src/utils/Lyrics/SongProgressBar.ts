@@ -37,24 +37,6 @@ export class SongProgressBar {
     return this.position / this.duration;
   }
 
-  // Calculate position in milliseconds directly
-  CalculatePositionFromClick(params: { sliderBar: HTMLElement; event: MouseEvent }): number {
-    const { sliderBar, event } = params;
-
-    if (this.duration <= 0) return 0;
-
-    const rect = sliderBar.getBoundingClientRect();
-    // 零宽滑块（隐藏/未布局）时 rect.width === 0 → clickX/0 = NaN → Seek(NaN)
-    if (rect.width <= 0) return 0;
-    const clickX = event.clientX - rect.left;
-    const percentage = Math.max(0, Math.min(1, clickX / rect.width));
-
-    // Calculate position in milliseconds directly
-    const positionMs = Math.floor(percentage * this.duration);
-
-    return positionMs;
-  }
-
   // Format milliseconds to MM:SS or HH:MM:SS
   private formatTime(timeInMs: number): string {
     if (Number.isNaN(timeInMs) || timeInMs < 0) {

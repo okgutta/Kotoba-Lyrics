@@ -45,19 +45,3 @@ export function parseLrc(txt = ""): LrcRow[] {
     })
     .sort((a, b) => a.t - b.t);
 }
-
-/** 二分查找时间戳最接近的歌词行；调用方可按数据源指定容差。 */
-export function findNear(arr: LrcRow[], t: number, tol = 600): string {
-  if (!arr || arr.length === 0) return "";
-  let lo = 0;
-  let hi = arr.length - 1;
-  let best: LrcRow | null = null;
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    const dt = arr[mid].t - t;
-    if (!best || Math.abs(dt) < Math.abs(best.t - t)) best = arr[mid];
-    if (dt < 0) lo = mid + 1;
-    else hi = mid - 1;
-  }
-  return best && Math.abs(best.t - t) <= tol ? String(best.text || "").trim() : "";
-}
